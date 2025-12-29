@@ -6,7 +6,7 @@ import {
 	ListPromptsRequestSchema,
 	GetPromptRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { prompts } from './definitions.js';
+import { prompts, promptToolMapping } from './definitions.js';
 
 /**
  * Generate messages for a prompt that guide the agent to use the right tools
@@ -16,7 +16,7 @@ import { prompts } from './definitions.js';
  */
 function generatePromptMessages(promptName, args) {
 	const messages = {
-		'project-overview': [
+		project_overview: [
 			{
 				role: 'user',
 				content: {
@@ -29,7 +29,7 @@ function generatePromptMessages(promptName, args) {
 				},
 			},
 		],
-		'what-should-i-work-on': [
+		get_next_task: [
 			{
 				role: 'user',
 				content: {
@@ -45,7 +45,7 @@ Then explain what the task involves and any context from the project.`,
 				},
 			},
 		],
-		'start-new-project': [
+		init_project: [
 			{
 				role: 'user',
 				content: {
@@ -65,7 +65,7 @@ This will create the standard .project/ structure with:
 				},
 			},
 		],
-		'import-tasks': [
+		import_tasks: [
 			{
 				role: 'user',
 				content: {
@@ -82,7 +82,7 @@ Tasks will be added to BACKLOG.md, not as individual files.`,
 				},
 			},
 		],
-		'start-working-on-task': [
+		promote_task: [
 			{
 				role: 'user',
 				content: {
@@ -97,7 +97,7 @@ Then use \`update_task\` to set status to "in_progress".`,
 				},
 			},
 		],
-		'check-project-health': [
+		lint_project: [
 			{
 				role: 'user',
 				content: {
@@ -117,7 +117,7 @@ This validates:
 				},
 			},
 		],
-		'list-all-tasks': [
+		list_tasks: [
 			{
 				role: 'user',
 				content: {
@@ -130,7 +130,7 @@ This shows tasks organized by status with counts and a summary dashboard.`,
 				},
 			},
 		],
-		'update-task-status': [
+		update_task: [
 			{
 				role: 'user',
 				content: {
@@ -158,6 +158,24 @@ Valid statuses: todo, in_progress, blocked, review, done`,
 			},
 		]
 	);
+}
+
+/**
+ * Get all message handler keys (for testing)
+ * @returns {string[]}
+ */
+export function getMessageHandlerKeys() {
+	const messages = {
+		project_overview: true,
+		get_next_task: true,
+		init_project: true,
+		import_tasks: true,
+		promote_task: true,
+		lint_project: true,
+		list_tasks: true,
+		update_task: true,
+	};
+	return Object.keys(messages);
 }
 
 /**
@@ -189,4 +207,4 @@ export function setupPrompts(server) {
 	});
 }
 
-export { prompts };
+export { prompts, promptToolMapping };

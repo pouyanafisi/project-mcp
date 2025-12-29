@@ -1,7 +1,26 @@
 /**
  * Prompt definitions for the MCP server.
  * These prompts help agents discover and use tools appropriately.
+ *
+ * NAMING CONVENTION: Use snake_case matching tool names where there's a 1:1 mapping.
+ * For multi-tool prompts, use descriptive snake_case names.
  */
+
+/**
+ * Mapping of prompts to the tools they invoke.
+ * Used for validation and documentation.
+ * @type {Record<string, string[]>}
+ */
+export const promptToolMapping = {
+	project_overview: ['check_project_state', 'search_project', 'list_tasks'],
+	get_next_task: ['get_next_task'],
+	init_project: ['init_project'],
+	import_tasks: ['import_tasks'],
+	promote_task: ['promote_task', 'update_task'],
+	lint_project: ['lint_project_docs'],
+	list_tasks: ['list_tasks'],
+	update_task: ['update_task'],
+};
 
 /**
  * All available prompts
@@ -9,13 +28,13 @@
  */
 export const prompts = [
 	{
-		name: 'project-overview',
+		name: 'project_overview',
 		description:
 			'Get an overview of the project, its status, and what work is in progress. Use when user asks "tell me about this project", "what is this project", "project status", or "what\'s going on".',
 		arguments: [],
 	},
 	{
-		name: 'what-should-i-work-on',
+		name: 'get_next_task',
 		description:
 			'Find the next task to work on based on priorities and dependencies. Use when user asks "what should I do", "what\'s next", "what to work on", or "next task".',
 		arguments: [
@@ -27,7 +46,7 @@ export const prompts = [
 		],
 	},
 	{
-		name: 'start-new-project',
+		name: 'init_project',
 		description:
 			'Initialize a new project with standard documentation structure. Use when user says "start a project", "new project", "initialize project", or "set up project docs".',
 		arguments: [
@@ -44,9 +63,9 @@ export const prompts = [
 		],
 	},
 	{
-		name: 'import-tasks',
+		name: 'import_tasks',
 		description:
-			'Import tasks from a roadmap or plan document into BACKLOG.md. Maps to the `import_tasks` tool. Use when user says "import tasks", "add tasks from roadmap", "populate backlog", or "convert plan to tasks".',
+			'Import tasks from a roadmap or plan document into BACKLOG.md. Use when user says "import tasks", "add tasks from roadmap", "populate backlog", or "convert plan to tasks".',
 		arguments: [
 			{
 				name: 'source_file',
@@ -61,7 +80,7 @@ export const prompts = [
 		],
 	},
 	{
-		name: 'start-working-on-task',
+		name: 'promote_task',
 		description:
 			'Promote a task from backlog to active work. Use when user says "start task", "work on X", "begin task", or "activate task".',
 		arguments: [
@@ -73,7 +92,7 @@ export const prompts = [
 		],
 	},
 	{
-		name: 'check-project-health',
+		name: 'lint_project',
 		description:
 			'Validate project documentation and check for issues. Use when user says "lint project", "check project files", "validate docs", or "project health check".',
 		arguments: [
@@ -85,7 +104,7 @@ export const prompts = [
 		],
 	},
 	{
-		name: 'list-all-tasks',
+		name: 'list_tasks',
 		description:
 			'Show all tasks with their status. Use when user asks "show tasks", "list todos", "what tasks exist", or "task list".',
 		arguments: [
@@ -97,7 +116,7 @@ export const prompts = [
 		],
 	},
 	{
-		name: 'update-task-status',
+		name: 'update_task',
 		description:
 			'Update the status of a task. Use when user says "mark task done", "complete task", "task is blocked", or "start task".',
 		arguments: [
@@ -114,3 +133,20 @@ export const prompts = [
 		],
 	},
 ];
+
+/**
+ * Get all prompt names
+ * @returns {string[]}
+ */
+export function getPromptNames() {
+	return prompts.map((p) => p.name);
+}
+
+/**
+ * Get tools used by a prompt
+ * @param {string} promptName
+ * @returns {string[]}
+ */
+export function getToolsForPrompt(promptName) {
+	return promptToolMapping[promptName] || [];
+}
