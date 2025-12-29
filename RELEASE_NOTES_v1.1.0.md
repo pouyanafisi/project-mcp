@@ -2,11 +2,14 @@
 
 **Release Date:** December 29, 2024
 
-> **Note:** See [RELEASE_NOTES_v1.2.0.md](RELEASE_NOTES_v1.2.0.md) for the latest release.
+> **Note:** See [RELEASE_NOTES_v1.2.0.md](RELEASE_NOTES_v1.2.0.md) for the
+> latest release.
 
 ## Overview
 
-This release introduces a comprehensive task management system with YAML frontmatter, dependency tracking, and Jira-like IDs. It also adds documentation linting to ensure project files conform to standards.
+This release introduces a comprehensive task management system with YAML
+frontmatter, dependency tracking, and Jira-like IDs. It also adds documentation
+linting to ensure project files conform to standards.
 
 ## New Features
 
@@ -14,9 +17,12 @@ This release introduces a comprehensive task management system with YAML frontma
 
 A new structured approach to managing tasks within projects:
 
-- **YAML Frontmatter**: Tasks stored with rich metadata (priority, status, owner, dependencies, estimates, due dates, tags)
-- **Stable IDs**: Jira-like format `{PROJECT}-{NNN}` (e.g., `AUTH-001`, `API-042`)
-- **Dependencies**: `depends_on` array prevents tasks from appearing in `get_next_task` until dependencies are complete
+- **YAML Frontmatter**: Tasks stored with rich metadata (priority, status,
+  owner, dependencies, estimates, due dates, tags)
+- **Stable IDs**: Jira-like format `{PROJECT}-{NNN}` (e.g., `AUTH-001`,
+  `API-042`)
+- **Dependencies**: `depends_on` array prevents tasks from appearing in
+  `get_next_task` until dependencies are complete
 - **Status Workflow**: `todo` → `in_progress` → `blocked` | `review` → `done`
 - **Subtask Checklists**: Track granular progress within tasks
 
@@ -28,15 +34,15 @@ Creates a new task with YAML frontmatter metadata.
 
 ```json
 {
-  "tool": "create_task",
-  "arguments": {
-    "title": "Implement OAuth",
-    "project": "AUTH",
-    "priority": "P0",
-    "owner": "cursor",
-    "depends_on": ["AUTH-002"],
-    "estimate": "2d"
-  }
+	"tool": "create_task",
+	"arguments": {
+		"title": "Implement OAuth",
+		"project": "AUTH",
+		"priority": "P0",
+		"owner": "cursor",
+		"depends_on": ["AUTH-002"],
+		"estimate": "2d"
+	}
 }
 ```
 
@@ -46,51 +52,56 @@ Updates any field on an existing task, including status transitions.
 
 ```json
 {
-  "tool": "update_task",
-  "arguments": {
-    "id": "AUTH-001",
-    "status": "done"
-  }
+	"tool": "update_task",
+	"arguments": {
+		"id": "AUTH-001",
+		"status": "done"
+	}
 }
 ```
 
 #### `get_next_task`
 
-Returns dependency-aware next task(s) to work on. Sorted by priority (P0→P3), filters out blocked tasks and those with incomplete dependencies.
+Returns dependency-aware next task(s) to work on. Sorted by priority (P0→P3),
+filters out blocked tasks and those with incomplete dependencies.
 
 ```json
 {
-  "tool": "get_next_task",
-  "arguments": {
-    "owner": "cursor",
-    "limit": 5
-  }
+	"tool": "get_next_task",
+	"arguments": {
+		"owner": "cursor",
+		"limit": 5
+	}
 }
 ```
 
 #### `list_tasks`
 
-Lists all tasks with optional filtering by project, owner, status, priority, or tag.
+Lists all tasks with optional filtering by project, owner, status, priority, or
+tag.
 
 #### `lint_project_docs`
 
 Validates project documentation against standards:
 
-- **Required files check**: Ensures `index.md`, `TODO.md`, `ROADMAP.md`, `STATUS.md`, `DECISIONS.md` exist
-- **Task validation**: Required fields, valid status/priority values, valid dependencies
+- **Required files check**: Ensures `index.md`, `TODO.md`, `ROADMAP.md`,
+  `STATUS.md`, `DECISIONS.md` exist
+- **Task validation**: Required fields, valid status/priority values, valid
+  dependencies
 - **Broken dependency detection**: Flags references to non-existent tasks
 - **Circular dependency detection**: Prevents tasks depending on themselves
-- **Auto-fix mode**: Automatically corrects fixable issues (timestamps, priority normalization)
+- **Auto-fix mode**: Automatically corrects fixable issues (timestamps, priority
+  normalization)
 - **Strict mode**: Enforces additional requirements (estimates, descriptions)
 
 ```json
 {
-  "tool": "lint_project_docs",
-  "arguments": {
-    "fix": true,
-    "strict": false,
-    "scope": "all"
-  }
+	"tool": "lint_project_docs",
+	"arguments": {
+		"fix": true,
+		"strict": false,
+		"scope": "all"
+	}
 }
 ```
 
@@ -156,7 +167,8 @@ None. This release is fully backward compatible with v1.0.0.
 
 ## Migration Guide
 
-No migration required. Existing projects will continue to work. To use the new task management features:
+No migration required. Existing projects will continue to work. To use the new
+task management features:
 
 1. Create tasks using `create_task`
 2. Use `get_next_task` to determine what to work on
@@ -197,4 +209,3 @@ No migration required. Existing projects will continue to work. To use the new t
 ---
 
 **Full Documentation:** [README.md](README.md)
-

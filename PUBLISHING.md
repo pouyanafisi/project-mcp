@@ -14,6 +14,7 @@
 ## Publishing Steps
 
 1. **Update version** (if needed):
+
    ```bash
    npm version patch  # for bug fixes
    npm version minor  # for new features
@@ -21,11 +22,13 @@
    ```
 
 2. **Login to NPM** (if not already):
+
    ```bash
    npm login
    ```
 
 3. **Publish**:
+
    ```bash
    npm publish
    ```
@@ -41,12 +44,12 @@ After publishing, users can install and use it with:
 
 ```json
 {
-  "mcpServers": {
-    "project": {
-      "command": "npx",
-      "args": ["-y", "project-mcp"]
-    }
-  }
+	"mcpServers": {
+		"project": {
+			"command": "npx",
+			"args": ["-y", "project-mcp"]
+		}
+	}
 }
 ```
 
@@ -60,5 +63,5 @@ After publishing, users can install and use it with:
 
 - The package is scoped to the global namespace (`project-mcp`)
 - Make sure you have publish rights to the package name
-- Consider using a scoped package (`@your-org/project-mcp`) if you want organization control
-
+- Consider using a scoped package (`@your-org/project-mcp`) if you want
+  organization control

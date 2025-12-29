@@ -2,29 +2,34 @@
 
 **Release Date:** December 29, 2024
 
-> **Note:** See [RELEASE_NOTES_v1.3.0.md](RELEASE_NOTES_v1.3.0.md) for the latest release.
+> **Note:** See [RELEASE_NOTES_v1.3.0.md](RELEASE_NOTES_v1.3.0.md) for the
+> latest release.
 
 ## Overview
 
-This release adds tools for bootstrapping new projects with standard file structures and importing tasks from existing plan documents. These tools ensure consistent project setup and enable bulk task creation from roadmaps.
+This release adds tools for bootstrapping new projects with standard file
+structures and importing tasks from existing plan documents. These tools ensure
+consistent project setup and enable bulk task creation from roadmaps.
 
 ## New Features
 
 ### `init_project` Tool
 
-Initializes the `.project/` directory with all standard files following strict templates:
+Initializes the `.project/` directory with all standard files following strict
+templates:
 
 ```json
 {
-  "tool": "init_project",
-  "arguments": {
-    "project_name": "My App",
-    "project_description": "A web application for task management"
-  }
+	"tool": "init_project",
+	"arguments": {
+		"project_name": "My App",
+		"project_description": "A web application for task management"
+	}
 }
 ```
 
 **Creates:**
+
 - `index.md` — Contract file with source mappings
 - `TODO.md` — Task dashboard (ready for `sync_todo_index`)
 - `ROADMAP.md` — Project phases and milestones template
@@ -33,6 +38,7 @@ Initializes the `.project/` directory with all standard files following strict t
 - `todos/` — Directory for individual task files
 
 **Features:**
+
 - All files follow consistent standards
 - YAML frontmatter with proper metadata
 - Placeholder content for easy customization
@@ -40,22 +46,24 @@ Initializes the `.project/` directory with all standard files following strict t
 
 ### `import_tasks` Tool
 
-Parses a plan document (ROADMAP.md, requirements doc, or structured text) and generates YAML task files:
+Parses a plan document (ROADMAP.md, requirements doc, or structured text) and
+generates YAML task files:
 
 ```json
 {
-  "tool": "import_tasks",
-  "arguments": {
-    "source": ".project/ROADMAP.md",
-    "project": "APP",
-    "default_owner": "cursor",
-    "default_priority": "P2",
-    "dry_run": true
-  }
+	"tool": "import_tasks",
+	"arguments": {
+		"source": ".project/ROADMAP.md",
+		"project": "APP",
+		"default_owner": "cursor",
+		"default_priority": "P2",
+		"dry_run": true
+	}
 }
 ```
 
 **Features:**
+
 - Parses markdown lists (`- [ ]` items and `- ` items)
 - Extracts phase/section context from headers
 - Infers priority from keywords (critical, high, medium, low)
@@ -65,6 +73,7 @@ Parses a plan document (ROADMAP.md, requirements doc, or structured text) and ge
 - Dry-run mode to preview before creating files
 
 **Supported Source Formats:**
+
 - Markdown files with task lists
 - ROADMAP.md with phases and milestones
 - Requirements documents with bullet points
@@ -83,6 +92,7 @@ updated: 2024-12-29
 ```
 
 Includes:
+
 - AI agent contract with source mappings
 - Intent-to-source routing documentation
 - File structure reference
@@ -91,6 +101,7 @@ Includes:
 ### ROADMAP.md
 
 Template with:
+
 - Phase structure (Foundation, Core Features, Polish)
 - Milestone tracking table
 - Future considerations section
@@ -98,6 +109,7 @@ Template with:
 ### STATUS.md
 
 Template with:
+
 - Current phase indicator
 - Health status (🟢 🟡 🔴)
 - Progress table by area
@@ -107,6 +119,7 @@ Template with:
 ### DECISIONS.md
 
 Architecture Decision Record format:
+
 - ADR template with Context, Decision, Consequences
 - Example decision pre-filled
 - Consistent formatting
@@ -154,6 +167,7 @@ None. Fully backward compatible with v1.1.0.
 ## Full Changelog
 
 ### Added
+
 - `init_project` tool for bootstrapping `.project/` directory
 - `import_tasks` tool for parsing plans and generating YAML tasks
 - Standard templates for all project files
@@ -163,10 +177,10 @@ None. Fully backward compatible with v1.1.0.
 - Tag extraction from bracket notation
 
 ### Changed
+
 - README updated with new tool documentation
 - Added examples for `init_project` and `import_tasks`
 
 ---
 
 **Full Documentation:** [README.md](README.md)
-

@@ -3,10 +3,29 @@
  * Handles: create_task, update_task, get_next_task, list_tasks, sync_todo_index
  */
 
-import { TODOS_DIR, PROJECT_DIR, STATUS_ORDER, PRIORITY_ORDER, STATUS_EMOJI } from '../lib/constants.js';
-import { readFile, writeFile, join, ensureTodosDir, ensureProjectDir, fileExists, matter } from '../lib/files.js';
+import {
+	TODOS_DIR,
+	PROJECT_DIR,
+	STATUS_ORDER,
+	PRIORITY_ORDER,
+	STATUS_EMOJI,
+} from '../lib/constants.js';
+import {
+	readFile,
+	writeFile,
+	join,
+	ensureTodosDir,
+	ensureProjectDir,
+	fileExists,
+	matter,
+} from '../lib/files.js';
 import { getCurrentDate, getISODate } from '../lib/dates.js';
-import { loadAllTasks, getNextTaskId, areDependenciesMet, sortTasksByPriority } from '../lib/tasks.js';
+import {
+	loadAllTasks,
+	getNextTaskId,
+	areDependenciesMet,
+	sortTasksByPriority,
+} from '../lib/tasks.js';
 
 /**
  * Tool definitions
@@ -21,7 +40,8 @@ export const definitions = [
 			properties: {
 				title: {
 					type: 'string',
-					description: 'The title of the task (e.g., "Implement OAuth authentication", "Fix login bug").',
+					description:
+						'The title of the task (e.g., "Implement OAuth authentication", "Fix login bug").',
 				},
 				project: {
 					type: 'string',
@@ -38,7 +58,8 @@ export const definitions = [
 				},
 				priority: {
 					type: 'string',
-					description: 'Priority level: "P0" (critical/blocker), "P1" (high), "P2" (medium/default), "P3" (low).',
+					description:
+						'Priority level: "P0" (critical/blocker), "P1" (high), "P2" (medium/default), "P3" (low).',
 					enum: ['P0', 'P1', 'P2', 'P3'],
 					default: 'P2',
 				},
@@ -72,7 +93,8 @@ export const definitions = [
 				tags: {
 					type: 'array',
 					items: { type: 'string' },
-					description: 'Array of tags for categorization (e.g., ["security", "urgent", "tech-debt", "feature"]).',
+					description:
+						'Array of tags for categorization (e.g., ["security", "urgent", "tech-debt", "feature"]).',
 				},
 				subtasks: {
 					type: 'array',
@@ -154,7 +176,7 @@ export const definitions = [
 	{
 		name: 'get_next_task',
 		description:
-			"Returns the next task(s) that should be worked on. Considers: dependencies (only returns tasks whose dependencies are done), priority (P0 first), status (excludes done/blocked), and optionally filters by owner or project. This is the key tool for agentic execution - call this to know what to do next.",
+			'Returns the next task(s) that should be worked on. Considers: dependencies (only returns tasks whose dependencies are done), priority (P0 first), status (excludes done/blocked), and optionally filters by owner or project. This is the key tool for agentic execution - call this to know what to do next.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -380,7 +402,10 @@ async function updateTask(args) {
 			}
 			changes.push('description appended');
 		} else {
-			content = content.replace(/## Description\n\n[\s\S]*?(?=\n## |$)/, `## Description\n\n${updates.description}\n\n`);
+			content = content.replace(
+				/## Description\n\n[\s\S]*?(?=\n## |$)/,
+				`## Description\n\n${updates.description}\n\n`
+			);
 			changes.push('description updated');
 		}
 	}
@@ -400,7 +425,9 @@ async function updateTask(args) {
 	}
 
 	if (updates.complete_subtask) {
-		const regex = new RegExp(`- \\[ \\] (.*${updates.complete_subtask.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*)`);
+		const regex = new RegExp(
+			`- \\[ \\] (.*${updates.complete_subtask.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*)`
+		);
 		if (regex.test(content)) {
 			content = content.replace(regex, '- [x] $1');
 			changes.push(`completed subtask: ${updates.complete_subtask}`);
@@ -418,7 +445,7 @@ async function updateTask(args) {
 		content: [
 			{
 				type: 'text',
-				text: `✅ Updated task **${id}**\n\n**Changes:**\n${changes.map(c => `- ${c}`).join('\n')}\n\n**Current state:**\n- Priority: ${data.priority}\n- Status: ${data.status}\n- Owner: ${data.owner}`,
+				text: `✅ Updated task **${id}**\n\n**Changes:**\n${changes.map((c) => `- ${c}`).join('\n')}\n\n**Current state:**\n- Priority: ${data.priority}\n- Status: ${data.status}\n- Owner: ${data.owner}`,
 			},
 		],
 	};
@@ -433,7 +460,7 @@ async function getNextTask(args) {
 	const allTasks = await loadAllTasks();
 
 	// Filter tasks
-	let candidates = allTasks.filter(task => {
+	let candidates = allTasks.filter((task) => {
 		if (task.status === 'done') return false;
 		if (!include_blocked && task.status === 'blocked') return false;
 		if (owner && task.owner !== owner) return false;
@@ -489,7 +516,7 @@ async function listTasks(args) {
 	const allTasks = await loadAllTasks();
 
 	// Apply filters
-	let tasks = allTasks.filter(task => {
+	let tasks = allTasks.filter((task) => {
 		if (project && task.project !== project.toUpperCase()) return false;
 		if (owner && task.owner !== owner) return false;
 		if (status && task.status !== status) return false;
@@ -511,11 +538,11 @@ async function listTasks(args) {
 
 	// Build summary
 	const counts = {
-		todo: tasks.filter(t => t.status === 'todo').length,
-		in_progress: tasks.filter(t => t.status === 'in_progress').length,
-		blocked: tasks.filter(t => t.status === 'blocked').length,
-		review: tasks.filter(t => t.status === 'review').length,
-		done: tasks.filter(t => t.status === 'done').length,
+		todo: tasks.filter((t) => t.status === 'todo').length,
+		in_progress: tasks.filter((t) => t.status === 'in_progress').length,
+		blocked: tasks.filter((t) => t.status === 'blocked').length,
+		review: tasks.filter((t) => t.status === 'review').length,
+		done: tasks.filter((t) => t.status === 'done').length,
 	};
 
 	let result = `## Task List\n\n`;
@@ -527,7 +554,7 @@ async function listTasks(args) {
 	result += `✅ Done: ${counts.done}\n\n`;
 
 	for (const s of ['in_progress', 'todo', 'blocked', 'review', 'done']) {
-		const statusTasks = tasks.filter(t => t.status === s);
+		const statusTasks = tasks.filter((t) => t.status === s);
 		if (statusTasks.length > 0) {
 			result += `### ${STATUS_EMOJI[s]} ${s.replace('_', ' ').toUpperCase()} (${statusTasks.length})\n\n`;
 			result += `| ID | P | Title | Owner | Due |\n`;
@@ -557,23 +584,23 @@ async function syncTodoIndex(args) {
 	// Calculate stats
 	const counts = {
 		total: tasks.length,
-		todo: tasks.filter(t => t.status === 'todo').length,
-		in_progress: tasks.filter(t => t.status === 'in_progress').length,
-		blocked: tasks.filter(t => t.status === 'blocked').length,
-		review: tasks.filter(t => t.status === 'review').length,
-		done: tasks.filter(t => t.status === 'done').length,
+		todo: tasks.filter((t) => t.status === 'todo').length,
+		in_progress: tasks.filter((t) => t.status === 'in_progress').length,
+		blocked: tasks.filter((t) => t.status === 'blocked').length,
+		review: tasks.filter((t) => t.status === 'review').length,
+		done: tasks.filter((t) => t.status === 'done').length,
 	};
 
 	const priorityCounts = {
-		P0: tasks.filter(t => t.priority === 'P0' && t.status !== 'done').length,
-		P1: tasks.filter(t => t.priority === 'P1' && t.status !== 'done').length,
-		P2: tasks.filter(t => t.priority === 'P2' && t.status !== 'done').length,
-		P3: tasks.filter(t => t.priority === 'P3' && t.status !== 'done').length,
+		P0: tasks.filter((t) => t.priority === 'P0' && t.status !== 'done').length,
+		P1: tasks.filter((t) => t.priority === 'P1' && t.status !== 'done').length,
+		P2: tasks.filter((t) => t.priority === 'P2' && t.status !== 'done').length,
+		P3: tasks.filter((t) => t.priority === 'P3' && t.status !== 'done').length,
 	};
 
 	// Find next actionable tasks
 	const actionable = sortTasksByPriority(
-		tasks.filter(t => t.status !== 'done' && t.status !== 'blocked' && areDependenciesMet(t, tasks))
+		tasks.filter((t) => t.status !== 'done' && t.status !== 'blocked' && areDependenciesMet(t, tasks))
 	).slice(0, 5);
 
 	let content = `# TODO Dashboard
@@ -606,7 +633,7 @@ async function syncTodoIndex(args) {
 	}
 
 	// In Progress section
-	const inProgress = tasks.filter(t => t.status === 'in_progress');
+	const inProgress = tasks.filter((t) => t.status === 'in_progress');
 	content += `\n## 🔵 In Progress (${inProgress.length})\n\n`;
 	if (inProgress.length > 0) {
 		for (const task of inProgress) {
@@ -617,7 +644,7 @@ async function syncTodoIndex(args) {
 	}
 
 	// Blocked section
-	const blocked = tasks.filter(t => t.status === 'blocked');
+	const blocked = tasks.filter((t) => t.status === 'blocked');
 	if (blocked.length > 0) {
 		content += `\n## 🔴 Blocked (${blocked.length})\n\n`;
 		for (const task of blocked) {
@@ -627,12 +654,12 @@ async function syncTodoIndex(args) {
 	}
 
 	// Projects summary
-	const projects = [...new Set(tasks.map(t => t.project))];
+	const projects = [...new Set(tasks.map((t) => t.project))];
 	if (projects.length > 0) {
 		content += `\n## 📁 Projects\n\n`;
 		for (const proj of projects) {
-			const projTasks = tasks.filter(t => t.project === proj);
-			const projDone = projTasks.filter(t => t.status === 'done').length;
+			const projTasks = tasks.filter((t) => t.project === proj);
+			const projDone = projTasks.filter((t) => t.status === 'done').length;
 			content += `- **${proj}**: ${projDone}/${projTasks.length} done\n`;
 		}
 	}
@@ -646,7 +673,7 @@ async function syncTodoIndex(args) {
 		content: [
 			{
 				type: 'text',
-				text: `✅ Synced TODO.md dashboard\n\n**Summary:**\n- Total: ${counts.total} tasks\n- Active: ${counts.total - counts.done}\n- In Progress: ${counts.in_progress}\n- Blocked: ${counts.blocked}\n- Done: ${counts.done}\n\n**Next actionable:** ${actionable.length > 0 ? actionable.map(t => t.id).join(', ') : 'None'}`,
+				text: `✅ Synced TODO.md dashboard\n\n**Summary:**\n- Total: ${counts.total} tasks\n- Active: ${counts.total - counts.done}\n- In Progress: ${counts.in_progress}\n- Blocked: ${counts.blocked}\n- Done: ${counts.done}\n\n**Next actionable:** ${actionable.length > 0 ? actionable.map((t) => t.id).join(', ') : 'None'}`,
 			},
 		],
 	};
@@ -662,4 +689,3 @@ export const handlers = {
 	list_tasks: listTasks,
 	sync_todo_index: syncTodoIndex,
 };
-

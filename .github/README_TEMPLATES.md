@@ -9,7 +9,8 @@ Use these templates to get started with proper project documentation structure.
 
 ## Contract for AI Agents
 
-When a user says **"project"**, **"the project"**, or **"my project"**, the canonical sources of truth are, in order:
+When a user says **"project"**, **"the project"**, or **"my project"**, the
+canonical sources of truth are, in order:
 
 1. **`.project/`** — Current state, plans, todos, decisions, operational truth
 2. **Root markdown files** — README.md, DEVELOPMENT.md, ARCHITECTURE.md, etc.
@@ -18,17 +19,23 @@ When a user says **"project"**, **"the project"**, or **"my project"**, the cano
 ## Source Mappings
 
 ### "project" / "the project" / "my project"
+
 Searches (in order):
+
 - `.project/` directory
 - Root-level markdown files (README.md, DEVELOPMENT.md, ARCHITECTURE.md, etc.)
 - `docs/` directory
 
 ### "docs" / "documentation" / "reference"
+
 Searches only:
+
 - `docs/` directory
 
 ### "plan" / "todos" / "roadmap" / "status" / "operational"
+
 Searches only:
+
 - `.project/` directory
 
 ## Principles
@@ -73,17 +80,20 @@ Searches only:
 ## Current Quarter
 
 ### Phase 1: [Name] (Weeks 1-4)
+
 - Goal 1
 - Goal 2
 - Goal 3
 
 ### Phase 2: [Name] (Weeks 5-8)
+
 - Goal 1
 - Goal 2
 
 ## Next Quarter
 
 ### Planned Features
+
 - Feature 1
 - Feature 2
 
@@ -145,9 +155,10 @@ Searches only:
 3. **Component 3** - [Description]
 
 ### Data Flow
-
 ```
+
 [ASCII diagram or description]
+
 ```
 
 ## Technology Stack
@@ -168,7 +179,7 @@ Searches only:
 
 ## `docs/api/ENDPOINTS.md` Template
 
-```markdown
+````markdown
 # API Endpoints
 
 ## Authentication
@@ -178,24 +189,29 @@ Searches only:
 [Description]
 
 **Request:**
+
 ```json
 {
-  "field": "value"
+	"field": "value"
 }
 ```
+````
 
 **Response:**
+
 ```json
 {
-  "field": "value"
+	"field": "value"
 }
 ```
 
 **Status Codes:**
+
 - `200` - Success
 - `401` - Unauthorized
 - `400` - Bad Request
-```
+
+````
 
 ## Best Practices
 
@@ -207,7 +223,7 @@ Searches only:
    title: My Document
    description: Brief description
    ---
-   ```
+````
 
 2. **Clear headings** - Use H1 for title, H2 for main sections
 
@@ -230,4 +246,3 @@ Searches only:
 - **Stable** - Don't change frequently
 - **Cross-reference** - Link related docs
 - **Examples** - Include real-world examples
-

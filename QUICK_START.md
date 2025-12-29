@@ -38,7 +38,8 @@ mkdir .project
 
 ## Contract for AI Agents
 
-When a user says **"project"**, **"the project"**, or **"my project"**, the canonical sources of truth are, in order:
+When a user says **"project"**, **"the project"**, or **"my project"**, the
+canonical sources of truth are, in order:
 
 1. **`.project/`** — Current state, plans, todos, decisions, operational truth
 2. **Root markdown files** — README.md, DEVELOPMENT.md, ARCHITECTURE.md, etc.
@@ -47,17 +48,23 @@ When a user says **"project"**, **"the project"**, or **"my project"**, the cano
 ## Source Mappings
 
 ### "project" / "the project" / "my project"
+
 Searches (in order):
+
 - `.project/` directory
 - Root-level markdown files (README.md, DEVELOPMENT.md, ARCHITECTURE.md, etc.)
 - `docs/` directory
 
 ### "docs" / "documentation" / "reference"
+
 Searches only:
+
 - `docs/` directory
 
 ### "plan" / "todos" / "roadmap" / "status" / "operational"
+
 Searches only:
+
 - `.project/` directory
 ```
 
@@ -100,11 +107,11 @@ Ask your AI agent:
 
 ## That's It!
 
-Your project documentation is now searchable by AI agents with intent-based search.
+Your project documentation is now searchable by AI agents with intent-based
+search.
 
 ## Next Steps
 
 - Read the [full README](README.md) for detailed documentation
 - Check out [documentation templates](.github/README_TEMPLATES.md) for examples
 - See [EXAMPLES.md](EXAMPLES.md) for usage patterns
-

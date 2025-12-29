@@ -3,7 +3,13 @@
  * Handles: import_tasks, promote_task, archive_task
  */
 
-import { PROJECT_ROOT, PROJECT_DIR, TODOS_DIR, ARCHIVE_DIR, BACKLOG_FILE } from '../lib/constants.js';
+import {
+	PROJECT_ROOT,
+	PROJECT_DIR,
+	TODOS_DIR,
+	ARCHIVE_DIR,
+	BACKLOG_FILE,
+} from '../lib/constants.js';
 import {
 	readFile,
 	writeFile,
@@ -36,7 +42,8 @@ export const definitions = [
 				},
 				source_type: {
 					type: 'string',
-					description: 'Type of source: "file" (path to file) or "content" (raw markdown). Default: "file".',
+					description:
+						'Type of source: "file" (path to file) or "content" (raw markdown). Default: "file".',
 					enum: ['file', 'content'],
 					default: 'file',
 				},
@@ -56,7 +63,8 @@ export const definitions = [
 				},
 				dry_run: {
 					type: 'boolean',
-					description: 'If true, shows what would be imported without modifying BACKLOG.md. Default: false.',
+					description:
+						'If true, shows what would be imported without modifying BACKLOG.md. Default: false.',
 					default: false,
 				},
 			},
@@ -87,7 +95,8 @@ export const definitions = [
 				depends_on: {
 					type: 'array',
 					items: { type: 'string' },
-					description: 'Task IDs this depends on (e.g., ["AUTH-002"]). Only active tasks can be dependencies.',
+					description:
+						'Task IDs this depends on (e.g., ["AUTH-002"]). Only active tasks can be dependencies.',
 				},
 				estimate: {
 					type: 'string',
@@ -127,7 +136,14 @@ export const definitions = [
  * Import tasks handler
  */
 async function importTasks(args) {
-	const { source, source_type = 'file', project, phase: filterPhase, default_priority = 'P2', dry_run = false } = args;
+	const {
+		source,
+		source_type = 'file',
+		project,
+		phase: filterPhase,
+		default_priority = 'P2',
+		dry_run = false,
+	} = args;
 
 	await ensureProjectDir();
 
@@ -158,7 +174,7 @@ async function importTasks(args) {
 
 	// Filter by phase if specified
 	if (filterPhase) {
-		tasks = tasks.filter(t => t.phase && t.phase.toLowerCase().includes(filterPhase.toLowerCase()));
+		tasks = tasks.filter((t) => t.phase && t.phase.toLowerCase().includes(filterPhase.toLowerCase()));
 	}
 
 	if (tasks.length === 0) {
@@ -281,7 +297,10 @@ updated: ${getISODate()}
 		}
 
 		// Update timestamp
-		backlogContent = backlogContent.replace(/\*\*Last Updated:\*\* .*/, `**Last Updated:** ${getCurrentDate()}`);
+		backlogContent = backlogContent.replace(
+			/\*\*Last Updated:\*\* .*/,
+			`**Last Updated:** ${getCurrentDate()}`
+		);
 		backlogContent = backlogContent.replace(/updated: .*/, `updated: ${getISODate()}`);
 
 		await writeFile(BACKLOG_FILE, backlogContent, 'utf-8');
@@ -349,7 +368,7 @@ async function promoteTask(args) {
 	}
 
 	const title = match[1].trim();
-	const tags = match[2] ? match[2].split(',').map(t => t.trim()) : [];
+	const tags = match[2] ? match[2].split(',').map((t) => t.trim()) : [];
 	const phase = match[3] || null;
 
 	// Detect priority from backlog section
@@ -480,4 +499,3 @@ export const handlers = {
 	promote_task: promoteTask,
 	archive_task: archiveTask,
 };
-

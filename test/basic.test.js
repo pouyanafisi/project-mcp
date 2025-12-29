@@ -11,7 +11,7 @@ const PROJECT_ROOT = join(__dirname, '..');
 
 test('package.json is valid', async () => {
 	const packageJson = JSON.parse(await readFile(join(PROJECT_ROOT, 'package.json'), 'utf-8'));
-	
+
 	assert.ok(packageJson.name, 'Package name is required');
 	assert.ok(packageJson.version, 'Package version is required');
 	assert.ok(packageJson.description, 'Package description is required');
@@ -23,7 +23,7 @@ test('package.json is valid', async () => {
 test('src/index.js exists and imports server', async () => {
 	const indexPath = join(PROJECT_ROOT, 'src/index.js');
 	const content = await readFile(indexPath, 'utf-8');
-	
+
 	assert.ok(content.includes('ProjectMCPServer'), 'Should import ProjectMCPServer');
 	assert.ok(content.includes('./server.js'), 'Should import from server.js');
 });
@@ -31,7 +31,7 @@ test('src/index.js exists and imports server', async () => {
 test('src/server.js contains main server class', async () => {
 	const serverPath = join(PROJECT_ROOT, 'src/server.js');
 	const content = await readFile(serverPath, 'utf-8');
-	
+
 	assert.ok(content.includes('class ProjectMCPServer'), 'Should contain ProjectMCPServer class');
 	assert.ok(content.includes('setupHandlers'), 'Should have setupHandlers method');
 });
@@ -39,7 +39,7 @@ test('src/server.js contains main server class', async () => {
 test('src/tools/search.js contains search tools', async () => {
 	const searchPath = join(PROJECT_ROOT, 'src/tools/search.js');
 	const content = await readFile(searchPath, 'utf-8');
-	
+
 	assert.ok(content.includes('search_project'), 'Should contain search_project tool');
 	assert.ok(content.includes('search_docs'), 'Should contain search_docs tool');
 });
@@ -47,15 +47,22 @@ test('src/tools/search.js contains search tools', async () => {
 test('README.md exists', async () => {
 	const readmePath = join(PROJECT_ROOT, 'README.md');
 	const content = await readFile(readmePath, 'utf-8');
-	
-	assert.ok(content.includes('project-mcp') || content.includes('Project MCP'), 'Should mention project-mcp');
-	assert.ok(content.includes('Installation') || content.includes('npm install') || content.includes('Quick Start'), 'Should include installation instructions');
+
+	assert.ok(
+		content.includes('project-mcp') || content.includes('Project MCP'),
+		'Should mention project-mcp'
+	);
+	assert.ok(
+		content.includes('Installation') ||
+			content.includes('npm install') ||
+			content.includes('Quick Start'),
+		'Should include installation instructions'
+	);
 });
 
 test('LICENSE exists', async () => {
 	const licensePath = join(PROJECT_ROOT, 'LICENSE');
 	const content = await readFile(licensePath, 'utf-8');
-	
+
 	assert.ok(content.includes('MIT'), 'Should be MIT license');
 });
-

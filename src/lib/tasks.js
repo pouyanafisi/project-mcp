@@ -5,7 +5,13 @@
 import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import matter from 'gray-matter';
-import { TODOS_DIR, ARCHIVE_DIR, BACKLOG_FILE, PRIORITY_ORDER, PRIORITY_KEYWORDS } from './constants.js';
+import {
+	TODOS_DIR,
+	ARCHIVE_DIR,
+	BACKLOG_FILE,
+	PRIORITY_ORDER,
+	PRIORITY_KEYWORDS,
+} from './constants.js';
 import { ensureTodosDir, fileExists } from './files.js';
 
 /**
@@ -72,7 +78,7 @@ export async function loadAllTasks() {
  */
 export function areDependenciesMet(task, allTasks) {
 	if (!task.depends_on || task.depends_on.length === 0) return true;
-	const taskMap = new Map(allTasks.map(t => [t.id, t]));
+	const taskMap = new Map(allTasks.map((t) => [t.id, t]));
 	for (const depId of task.depends_on) {
 		const dep = taskMap.get(depId);
 		if (!dep || dep.status !== 'done') return false;
@@ -212,7 +218,7 @@ export function parseTasksFromContent(content, project, defaultPriority) {
 
 			if (isSubtask && currentParent) {
 				// Add as subtask to parent
-				const parent = tasks.find(t => t.tempId === currentParent);
+				const parent = tasks.find((t) => t.tempId === currentParent);
 				if (parent) {
 					parent.subtasks = parent.subtasks || [];
 					parent.subtasks.push(title);
@@ -233,7 +239,7 @@ export function parseTasksFromContent(content, project, defaultPriority) {
 				// Extract tags from brackets
 				const tagMatch = title.match(/\[([^\]]+)\]/g);
 				if (tagMatch) {
-					task.tags = tagMatch.map(t => t.slice(1, -1).toLowerCase());
+					task.tags = tagMatch.map((t) => t.slice(1, -1).toLowerCase());
 					task.title = title.replace(/\[[^\]]+\]/g, '').trim();
 				}
 
@@ -261,4 +267,3 @@ export function normalizePriority(priority) {
 	if (/^P[0-3]$/.test(upper)) return upper;
 	return 'P2';
 }
-

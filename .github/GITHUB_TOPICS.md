@@ -66,4 +66,3 @@ Copy and paste this into GitHub's topic field:
 ```
 mcp,model-context-protocol,mcp-server,documentation,documentation-search,docs-search,search,fuzzy-search,semantic-search,markdown,markdown-search,project-documentation,project-management,intent-based-search,intent-mapping,ai-agent,ai-assistant,claude,cursor,anthropic,ai-tools,developer-tools,documentation-tools,knowledge-base,project-knowledge,operational-truth,reference-documentation,fuse.js,natural-language,nlp,zero-config,automatic-indexing,nodejs,javascript
 ```
-

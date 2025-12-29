@@ -67,7 +67,8 @@ export const definitions = [
 				},
 				replace: {
 					type: 'boolean',
-					description: 'If true, replaces the entire file. If false (default), merges with existing content.',
+					description:
+						'If true, replaces the entire file. If false (default), merges with existing content.',
 					default: false,
 				},
 			},
@@ -99,7 +100,8 @@ export const definitions = [
 				},
 				replace: {
 					type: 'boolean',
-					description: 'If true, replaces the entire file. If false (default), merges with existing content.',
+					description:
+						'If true, replaces the entire file. If false (default), merges with existing content.',
 					default: false,
 				},
 			},
@@ -126,7 +128,8 @@ export const definitions = [
 				},
 				replace: {
 					type: 'boolean',
-					description: 'If true, replaces the entire file. If false (default), merges with existing content.',
+					description:
+						'If true, replaces the entire file. If false (default), merges with existing content.',
 					default: false,
 				},
 			},
@@ -147,7 +150,8 @@ export const definitions = [
 				},
 				replace: {
 					type: 'boolean',
-					description: 'If true, replaces the entire file. If false (default), merges with existing content.',
+					description:
+						'If true, replaces the entire file. If false (default), merges with existing content.',
 					default: false,
 				},
 			},
@@ -173,7 +177,8 @@ export const definitions = [
 				},
 				replace: {
 					type: 'boolean',
-					description: 'If true, replaces the entire file. If false (default), merges with existing content.',
+					description:
+						'If true, replaces the entire file. If false (default), merges with existing content.',
 					default: false,
 				},
 			},
@@ -209,14 +214,15 @@ async function checkProjectState() {
 	summary += `**STATUS.md:** ${state.status ? '✅ Exists' : '❌ Missing'} (Current project status, health)\n`;
 	summary += `**DECISIONS.md:** ${state.decisions ? '✅ Exists' : '❌ Missing'} (Architecture decisions, trade-offs)\n\n`;
 
-	const missingCount = Object.values(state).filter(v => !v).length;
+	const missingCount = Object.values(state).filter((v) => !v).length;
 	if (missingCount > 0) {
 		summary += `⚠️ **${missingCount} project management file(s) missing.** Consider creating them:\n`;
 		if (!state.index) summary += '- Use `create_or_update_index` to set up the contract file\n';
 		if (!state.roadmap) summary += '- Use `create_or_update_roadmap` when planning future work\n';
 		if (!state.todo) summary += '- Use `create_or_update_todo` when adding tasks\n';
 		if (!state.status) summary += '- Use `create_or_update_status` when updating project health\n';
-		if (!state.decisions) summary += '- Use `create_or_update_decisions` when documenting architecture decisions\n';
+		if (!state.decisions)
+			summary += '- Use `create_or_update_decisions` when documenting architecture decisions\n';
 	} else {
 		summary += '✅ **All project management files exist.**\n';
 	}
@@ -260,7 +266,10 @@ ${content}
 	let updatedContent = existingContent;
 
 	if (section) {
-		const sectionRegex = new RegExp(`(##+\\s+${section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^#]*)`, 'i');
+		const sectionRegex = new RegExp(
+			`(##+\\s+${section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^#]*)`,
+			'i'
+		);
 		if (sectionRegex.test(existingContent)) {
 			updatedContent = existingContent.replace(sectionRegex, `$1\n\n${content}\n`);
 		} else {
@@ -271,7 +280,10 @@ ${content}
 	}
 
 	// Update timestamp
-	updatedContent = updatedContent.replace(/\*Last Updated: .*\*/, `*Last Updated: ${getCurrentDate()}*`);
+	updatedContent = updatedContent.replace(
+		/\*Last Updated: .*\*/,
+		`*Last Updated: ${getCurrentDate()}*`
+	);
 	if (!updatedContent.includes('*Last Updated:')) {
 		updatedContent += `\n\n---\n*Last Updated: ${getCurrentDate()}*\n`;
 	}
@@ -355,7 +367,10 @@ ${content}
 	}
 
 	// Add content to section
-	const sectionRegex = new RegExp(`(## ${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n)`, 'i');
+	const sectionRegex = new RegExp(
+		`(## ${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n)`,
+		'i'
+	);
 	if (sectionRegex.test(existingContent)) {
 		existingContent = existingContent.replace(sectionRegex, `$1${content}\n\n`);
 	} else {
@@ -363,7 +378,10 @@ ${content}
 	}
 
 	// Update timestamp
-	existingContent = existingContent.replace(/\*Last Updated: .*\*/, `*Last Updated: ${getCurrentDate()}*`);
+	existingContent = existingContent.replace(
+		/\*Last Updated: .*\*/,
+		`*Last Updated: ${getCurrentDate()}*`
+	);
 	if (!existingContent.includes('*Last Updated:')) {
 		existingContent += `\n\n---\n*Last Updated: ${getCurrentDate()}*\n`;
 	}
@@ -452,7 +470,10 @@ ${updateType === 'milestone' ? content : 'No milestone set'}
 	}
 
 	// Update or append to section
-	const sectionRegex = new RegExp(`(## ${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n)([^#]*)`, 'i');
+	const sectionRegex = new RegExp(
+		`(## ${sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n)([^#]*)`,
+		'i'
+	);
 	if (sectionRegex.test(existingContent)) {
 		if (updateType === 'changes' || updateType === 'general') {
 			existingContent = existingContent.replace(sectionRegex, `$1$2\n${content}\n`);
@@ -464,10 +485,19 @@ ${updateType === 'milestone' ? content : 'No milestone set'}
 	}
 
 	// Update timestamp
-	existingContent = existingContent.replace(/\*\*Last Updated:\*\* .*/, `**Last Updated:** ${getCurrentDate()}`);
-	existingContent = existingContent.replace(/\*Last Updated: .*\*/, `*Last Updated: ${getCurrentDate()}*`);
+	existingContent = existingContent.replace(
+		/\*\*Last Updated:\*\* .*/,
+		`**Last Updated:** ${getCurrentDate()}`
+	);
+	existingContent = existingContent.replace(
+		/\*Last Updated: .*\*/,
+		`*Last Updated: ${getCurrentDate()}*`
+	);
 	if (!existingContent.includes('Last Updated')) {
-		existingContent = existingContent.replace(/(# Project Status\n)/, `$1\n**Last Updated:** ${getCurrentDate()}\n`);
+		existingContent = existingContent.replace(
+			/(# Project Status\n)/,
+			`$1\n**Last Updated:** ${getCurrentDate()}\n`
+		);
 	}
 
 	await writeFile(statusPath, existingContent, 'utf-8');
@@ -558,7 +588,10 @@ Searches only:
 	}
 
 	// Update timestamp
-	updatedContent = updatedContent.replace(/\*Last Updated: .*\*/, `*Last Updated: ${getCurrentDate()}*`);
+	updatedContent = updatedContent.replace(
+		/\*Last Updated: .*\*/,
+		`*Last Updated: ${getCurrentDate()}*`
+	);
 	if (!updatedContent.includes('*Last Updated:')) {
 		updatedContent += `\n\n---\n*Last Updated: ${getCurrentDate()}*\n`;
 	}
@@ -621,7 +654,10 @@ ${content}
 	}
 
 	// Update timestamp
-	updatedContent = updatedContent.replace(/\*Last Updated: .*\*/, `*Last Updated: ${getCurrentDate()}*`);
+	updatedContent = updatedContent.replace(
+		/\*Last Updated: .*\*/,
+		`*Last Updated: ${getCurrentDate()}*`
+	);
 	if (!updatedContent.includes('*Last Updated:')) {
 		updatedContent += `\n\n---\n*Last Updated: ${getCurrentDate()}*\n`;
 	}
@@ -666,13 +702,17 @@ async function manageProjectFile(args) {
 		const contentLower = content.toLowerCase();
 		if (/\b(contract|source mapping|intent|agent|interpret|canonical)\b/.test(contentLower)) {
 			return await createOrUpdateIndex({ content });
-		} else if (/\b(roadmap|milestone|phase|quarter|q[1-4]|future|plan|planning)\b/.test(contentLower)) {
+		} else if (
+			/\b(roadmap|milestone|phase|quarter|q[1-4]|future|plan|planning)\b/.test(contentLower)
+		) {
 			return await createOrUpdateRoadmap({ content });
 		} else if (/\b(task|todo|todo|in progress|blocked|complete|done|finish)\b/.test(contentLower)) {
 			return await createOrUpdateTodo({ content });
 		} else if (/\b(status|health|phase|metric|risk|blocker|milestone|update)\b/.test(contentLower)) {
 			return await createOrUpdateStatus({ content });
-		} else if (/\b(decision|architecture|trade.?off|rationale|adr|choice|selected)\b/.test(contentLower)) {
+		} else if (
+			/\b(decision|architecture|trade.?off|rationale|adr|choice|selected)\b/.test(contentLower)
+		) {
 			return await createOrUpdateDecisions({ content });
 		} else {
 			return await createOrUpdateTodo({ content });
@@ -708,4 +748,3 @@ export const handlers = {
 	create_or_update_index: createOrUpdateIndex,
 	create_or_update_decisions: createOrUpdateDecisions,
 };
-

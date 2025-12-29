@@ -7,7 +7,13 @@ import Fuse from 'fuse.js';
 import { basename } from 'path';
 import { PROJECT_ROOT, DOCS_DIR, PROJECT_DIR } from '../lib/constants.js';
 import { readFile, fileExists, join, matter } from '../lib/files.js';
-import { loadAllFiles, getCachedFiles, detectIntent, getSourcesForIntent, extractSnippet } from '../lib/search.js';
+import {
+	loadAllFiles,
+	getCachedFiles,
+	detectIntent,
+	getSourcesForIntent,
+	extractSnippet,
+} from '../lib/search.js';
 
 /**
  * Tool definitions
@@ -128,7 +134,7 @@ async function searchProject(args) {
 	const sources = getSourcesForIntent(intent);
 
 	// Filter files by source
-	let filesToSearch = allFilesCache.filter(file => sources.includes(file.source));
+	let filesToSearch = allFilesCache.filter((file) => sources.includes(file.source));
 
 	// Rebuild index with filtered files
 	const index = new Fuse(filesToSearch, {
@@ -140,7 +146,7 @@ async function searchProject(args) {
 
 	const results = index.search(query).slice(0, maxResults);
 
-	const formattedResults = results.map(result => {
+	const formattedResults = results.map((result) => {
 		const doc = result.item;
 		const score = result.score || 0;
 		const matches = result.matches || [];
@@ -155,12 +161,12 @@ async function searchProject(args) {
 			category: doc.category,
 			relevanceScore: (1 - score).toFixed(3),
 			snippet,
-			matchedFields: matches.map(m => m.key).filter((v, i, a) => a.indexOf(v) === i),
+			matchedFields: matches.map((m) => m.key).filter((v, i, a) => a.indexOf(v) === i),
 		};
 	});
 
 	const resultText = formattedResults
-		.map(result => {
+		.map((result) => {
 			return `## ${result.title}
 **Path:** \`${result.path}\`
 **Source:** ${result.source} ${result.source === 'project' ? '(operational)' : result.source === 'docs' ? '(reference)' : '(root)'}
@@ -176,7 +182,9 @@ ${result.snippet}
 		.join('\n---\n\n');
 
 	const intentInfo =
-		intent !== 'project' ? `\n*Intent detected: "${intent}" - searched ${sources.join(', ')} sources*\n` : '';
+		intent !== 'project'
+			? `\n*Intent detected: "${intent}" - searched ${sources.join(', ')} sources*\n`
+			: '';
 
 	return {
 		content: [
@@ -197,9 +205,9 @@ async function searchDocs(args) {
 	await loadAllFiles();
 	const allFilesCache = getCachedFiles();
 
-	let docsToSearch = allFilesCache.filter(file => file.source === 'docs');
+	let docsToSearch = allFilesCache.filter((file) => file.source === 'docs');
 	if (category) {
-		docsToSearch = docsToSearch.filter(doc => doc.category === category);
+		docsToSearch = docsToSearch.filter((doc) => doc.category === category);
 	}
 
 	const index = new Fuse(docsToSearch, {
@@ -211,7 +219,7 @@ async function searchDocs(args) {
 
 	const results = index.search(query).slice(0, maxResults);
 
-	const formattedResults = results.map(result => {
+	const formattedResults = results.map((result) => {
 		const doc = result.item;
 		const score = result.score || 0;
 		const matches = result.matches || [];
@@ -225,12 +233,12 @@ async function searchDocs(args) {
 			category: doc.category,
 			relevanceScore: (1 - score).toFixed(3),
 			snippet,
-			matchedFields: matches.map(m => m.key).filter((v, i, a) => a.indexOf(v) === i),
+			matchedFields: matches.map((m) => m.key).filter((v, i, a) => a.indexOf(v) === i),
 		};
 	});
 
 	const resultText = formattedResults
-		.map(result => {
+		.map((result) => {
 			return `## ${result.title}
 **Path:** \`${result.path}\`
 **Category:** ${result.category}
@@ -307,9 +315,9 @@ async function listDocs(args) {
 	await loadAllFiles();
 	const allFilesCache = getCachedFiles();
 
-	let docs = allFilesCache.filter(file => file.source === 'docs');
+	let docs = allFilesCache.filter((file) => file.source === 'docs');
 	if (category) {
-		docs = docs.filter(doc => doc.category === category);
+		docs = docs.filter((doc) => doc.category === category);
 	}
 
 	const grouped = docs.reduce((acc, doc) => {
@@ -328,7 +336,7 @@ async function listDocs(args) {
 		.map(([cat, files]) => {
 			const fileList = files
 				.map(
-					file =>
+					(file) =>
 						`  - **${file.title}** (\`${file.path}\`)${file.description ? `\n    ${file.description}` : ''}`
 				)
 				.join('\n');
@@ -354,7 +362,7 @@ async function getDocStructure() {
 	const allFilesCache = getCachedFiles();
 
 	const structure = {};
-	allFilesCache.forEach(doc => {
+	allFilesCache.forEach((doc) => {
 		const parts = doc.path.split('/');
 		let current = structure;
 
@@ -383,7 +391,7 @@ async function getDocStructure() {
 
 		for (const [key, value] of Object.entries(obj)) {
 			if (key === '_files') {
-				value.forEach(file => {
+				value.forEach((file) => {
 					result += `${prefix}- **${file.title}** (\`${file.path}\`) [${file.source}]${file.description ? `\n${prefix}  ${file.description}` : ''}\n`;
 				});
 			} else {
@@ -415,4 +423,3 @@ export const handlers = {
 	list_docs: listDocs,
 	get_doc_structure: getDocStructure,
 };
-

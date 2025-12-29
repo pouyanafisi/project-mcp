@@ -50,6 +50,7 @@ Before publishing to NPM, ensure the following:
 ## ⚠️ Before Publishing
 
 1. **Update repository URLs** in `package.json`:
+
    ```json
    "repository": {
      "type": "git",
@@ -57,20 +58,24 @@ Before publishing to NPM, ensure the following:
    }
    ```
 
-2. **Set NPM_TOKEN secret** in GitHub repository settings for automated publishing
+2. **Set NPM_TOKEN secret** in GitHub repository settings for automated
+   publishing
 
 3. **Verify package name availability** on NPM:
+
    ```bash
    npm view project-mcp
    ```
 
 4. **Test locally**:
+
    ```bash
    npm pack
    npm install -g ./project-mcp-1.0.0.tgz
    ```
 
 5. **Create initial git repository** (if not already done):
+
    ```bash
    git init
    git add .
@@ -84,11 +89,13 @@ Before publishing to NPM, ensure the following:
 ## Publishing Steps
 
 1. Update version if needed:
+
    ```bash
    npm version patch|minor|major
    ```
 
 2. Push to GitHub:
+
    ```bash
    git push && git push --tags
    ```
@@ -96,6 +103,7 @@ Before publishing to NPM, ensure the following:
 3. Create GitHub Release (triggers publish workflow)
 
 Or publish manually:
+
 ```bash
 npm login
 npm publish
@@ -107,4 +115,3 @@ npm publish
 - [ ] Test installation: `npm install project-mcp`
 - [ ] Update documentation with actual repository URL
 - [ ] Announce on social media / communities
-

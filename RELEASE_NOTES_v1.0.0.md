@@ -4,7 +4,9 @@
 
 ## 🎉 First Stable Release
 
-This is the first stable release of `project-mcp`, an intent-based MCP server for project documentation search. This release establishes the standard for AI agent documentation search with zero configuration required.
+This is the first stable release of `project-mcp`, an intent-based MCP server
+for project documentation search. This release establishes the standard for AI
+agent documentation search with zero configuration required.
 
 ## ✨ Key Features
 
@@ -123,7 +125,8 @@ See [QUICK_START.md](QUICK_START.md) for detailed setup instructions.
 - [README.md](README.md) - Comprehensive documentation
 - [QUICK_START.md](QUICK_START.md) - 5-minute setup guide
 - [EXAMPLES.md](EXAMPLES.md) - Usage examples
-- [.github/README_TEMPLATES.md](.github/README_TEMPLATES.md) - Documentation templates
+- [.github/README_TEMPLATES.md](.github/README_TEMPLATES.md) - Documentation
+  templates
 
 ## 🤝 Contributing
 
@@ -135,7 +138,9 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🙏 Acknowledgments
 
-This project establishes a new standard for project documentation organization and AI agent search capabilities. Thank you to the MCP community for inspiration and feedback.
+This project establishes a new standard for project documentation organization
+and AI agent search capabilities. Thank you to the MCP community for inspiration
+and feedback.
 
 ---
 

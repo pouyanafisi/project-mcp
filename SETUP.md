@@ -63,21 +63,22 @@
 
 ## Custom Documentation Directory
 
-By default, the server looks for a `docs/` directory in the current working directory. To use a different directory:
+By default, the server looks for a `docs/` directory in the current working
+directory. To use a different directory:
 
-   ```json
-   {
-   	"mcpServers": {
-   		"project": {
-   			"command": "npx",
-   			"args": ["-y", "project-mcp"],
-   			"env": {
-   				"DOCS_DIR": "/path/to/your/documentation"
-   			}
-   		}
-   	}
-   }
-   ```
+```json
+{
+	"mcpServers": {
+		"project": {
+			"command": "npx",
+			"args": ["-y", "project-mcp"],
+			"env": {
+				"DOCS_DIR": "/path/to/your/documentation"
+			}
+		}
+	}
+}
+```
 
 ## How It Works
 

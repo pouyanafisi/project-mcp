@@ -2,7 +2,10 @@
  * Prompt handlers for the MCP server.
  */
 
-import { ListPromptsRequestSchema, GetPromptRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import {
+	ListPromptsRequestSchema,
+	GetPromptRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 import { prompts } from './definitions.js';
 
 /**
@@ -168,9 +171,9 @@ export function setupPrompts(server) {
 	}));
 
 	// Handle get prompt request
-	server.setRequestHandler(GetPromptRequestSchema, async request => {
+	server.setRequestHandler(GetPromptRequestSchema, async (request) => {
 		const { name, arguments: args } = request.params;
-		const prompt = prompts.find(p => p.name === name);
+		const prompt = prompts.find((p) => p.name === name);
 
 		if (!prompt) {
 			throw new Error(`Prompt not found: ${name}`);
@@ -187,4 +190,3 @@ export function setupPrompts(server) {
 }
 
 export { prompts };
-

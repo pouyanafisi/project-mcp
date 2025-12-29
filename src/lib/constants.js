@@ -83,4 +83,3 @@ export const PRIORITY_KEYWORDS = {
 	minor: 'P3',
 	'nice-to-have': 'P3',
 };
-

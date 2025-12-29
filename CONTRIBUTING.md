@@ -1,16 +1,19 @@
 # Contributing to Project MCP
 
-Thank you for your interest in contributing to Project MCP! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Project MCP! This document
+provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
-This project adheres to a code of conduct. By participating, you are expected to uphold this code.
+This project adheres to a code of conduct. By participating, you are expected to
+uphold this code.
 
 ## How to Contribute
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/yourusername/project-mcp/issues)
+1. Check if the bug has already been reported in
+   [Issues](https://github.com/yourusername/project-mcp/issues)
 2. If not, create a new issue with:
    - A clear, descriptive title
    - Steps to reproduce the bug
@@ -89,4 +92,3 @@ Example: `feat: add support for custom source directories`
 ## Questions?
 
 Feel free to open an issue for any questions about contributing!
-

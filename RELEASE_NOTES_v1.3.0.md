@@ -4,7 +4,9 @@
 
 ## Overview
 
-This release introduces a **backlog-first workflow** that separates planning from execution. Instead of creating hundreds of YAML task files upfront, tasks now flow through a structured pipeline:
+This release introduces a **backlog-first workflow** that separates planning
+from execution. Instead of creating hundreds of YAML task files upfront, tasks
+now flow through a structured pipeline:
 
 ```
 ROADMAP.md → BACKLOG.md → todos/*.md → archive/
@@ -13,13 +15,17 @@ ROADMAP.md → BACKLOG.md → todos/*.md → archive/
 
 ## Why This Change?
 
-The previous approach could create hundreds of individual YAML files when importing a large plan. This is:
+The previous approach could create hundreds of individual YAML files when
+importing a large plan. This is:
+
 - Hard to manage at scale
 - Slow for agents to process
 - Not how real teams work (you don't create 380 Jira tickets day one)
 
 The new approach:
-- **BACKLOG.md** holds the prioritized queue (hundreds of items OK - it's just markdown)
+
+- **BACKLOG.md** holds the prioritized queue (hundreds of items OK - it's just
+  markdown)
 - **todos/** has only 10-30 active YAML files (the current sprint/focus)
 - **archive/** preserves completed work for history
 
@@ -35,12 +41,15 @@ A new standard file created by `init_project`:
 ## Queue
 
 ### P0 - Critical
+
 - [ ] **AUTH-001**: Implement user login [P1] [security]
 
 ### P1 - High Priority
+
 - [ ] **AUTH-002**: Add OAuth support [P1] [security]
 
 ### P2 - Medium Priority
+
 ...
 ```
 
@@ -50,13 +59,13 @@ Moves a task from BACKLOG.md to an active YAML file:
 
 ```json
 {
-  "tool": "promote_task",
-  "arguments": {
-    "task_id": "AUTH-001",
-    "owner": "cursor",
-    "estimate": "2h",
-    "depends_on": ["AUTH-002"]
-  }
+	"tool": "promote_task",
+	"arguments": {
+		"task_id": "AUTH-001",
+		"owner": "cursor",
+		"estimate": "2h",
+		"depends_on": ["AUTH-002"]
+	}
 }
 ```
 
@@ -68,10 +77,10 @@ Moves completed tasks out of the active queue:
 
 ```json
 {
-  "tool": "archive_task",
-  "arguments": {
-    "task_id": "AUTH-001"
-  }
+	"tool": "archive_task",
+	"arguments": {
+		"task_id": "AUTH-001"
+	}
 }
 ```
 
@@ -83,12 +92,12 @@ Now imports to BACKLOG.md instead of creating files:
 
 ```json
 {
-  "tool": "import_tasks",
-  "arguments": {
-    "source": ".project/ROADMAP.md",
-    "project": "APP",
-    "phase": "Phase 1"  // Optional: filter by phase
-  }
+	"tool": "import_tasks",
+	"arguments": {
+		"source": ".project/ROADMAP.md",
+		"project": "APP",
+		"phase": "Phase 1" // Optional: filter by phase
+	}
 }
 ```
 
@@ -148,14 +157,16 @@ Now imports to BACKLOG.md instead of creating files:
 
 ### `import_tasks` Behavior Changed
 
-**Before (v1.2):** Created individual YAML files for each task
-**After (v1.3):** Adds tasks to BACKLOG.md
+**Before (v1.2):** Created individual YAML files for each task **After (v1.3):**
+Adds tasks to BACKLOG.md
 
-**Migration:** If you have existing YAML files, they continue to work. Use `promote_task` for new tasks from backlog.
+**Migration:** If you have existing YAML files, they continue to work. Use
+`promote_task` for new tasks from backlog.
 
 ## Full Changelog
 
 ### Added
+
 - `BACKLOG.md` standard file for work queue
 - `promote_task` tool
 - `archive_task` tool
@@ -163,6 +174,7 @@ Now imports to BACKLOG.md instead of creating files:
 - Phase filtering in `import_tasks`
 
 ### Changed
+
 - `import_tasks` targets BACKLOG.md (not individual files)
 - `init_project` creates BACKLOG.md and archive/
 - README updated with backlog-first workflow
@@ -170,4 +182,3 @@ Now imports to BACKLOG.md instead of creating files:
 ---
 
 **Full Documentation:** [README.md](README.md)
-

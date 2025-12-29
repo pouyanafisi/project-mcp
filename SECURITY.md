@@ -2,7 +2,8 @@
 
 ## Supported Versions
 
-We release patches for security vulnerabilities. Which versions receive security updates depends on the severity of the vulnerability.
+We release patches for security vulnerabilities. Which versions receive security
+updates depends on the severity of the vulnerability.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -10,10 +11,12 @@ We release patches for security vulnerabilities. Which versions receive security
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability, please **do not** open a public issue. Instead, please report it via one of the following methods:
+If you discover a security vulnerability, please **do not** open a public issue.
+Instead, please report it via one of the following methods:
 
 1. **Email**: Send details to [security@yourdomain.com]
-2. **GitHub Security Advisory**: Use the "Report a vulnerability" button on the repository's Security tab
+2. **GitHub Security Advisory**: Use the "Report a vulnerability" button on the
+   repository's Security tab
 
 ### What to Include
 
@@ -47,4 +50,3 @@ When using this package:
 - File paths are resolved relative to the current working directory
 - No authentication is performed - the server trusts the MCP client
 - The server does not execute code from documentation files
-

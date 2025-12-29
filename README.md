@@ -1,13 +1,16 @@
 # project-mcp
 
-> **Intent-based MCP server for project documentation** — Maps natural language to the right sources automatically
+> **Intent-based MCP server for project documentation** — Maps natural language
+> to the right sources automatically
 
 [![npm version](https://img.shields.io/npm/v/project-mcp.svg)](https://www.npmjs.com/package/project-mcp)
 [![Node.js](https://img.shields.io/node/v/project-mcp.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io)
 
-When users say "project", "docs", or "todos", `project-mcp` automatically searches the right directories—no configuration needed. It understands intent, not just directory names.
+When users say "project", "docs", or "todos", `project-mcp` automatically
+searches the right directories—no configuration needed. It understands intent,
+not just directory names.
 
 ---
 
@@ -94,7 +97,8 @@ Add to `.mcp.json`:
 - Manual source mapping is error-prone
 - No standard way to organize project knowledge
 
-**The Solution:** Intent-based search that maps language to sources automatically:
+**The Solution:** Intent-based search that maps language to sources
+automatically:
 
 | User Says                               | Searches                           |
 | --------------------------------------- | ---------------------------------- |
@@ -118,41 +122,42 @@ Add to `.mcp.json`:
 
 ### Project Management Tools
 
-| Tool                       | Description                                    | Use When                          |
-| -------------------------- | ---------------------------------------------- | --------------------------------- |
-| `init_project`             | Initialize `.project/` with all standard files | Starting a new project            |
-| `manage_project_file`      | Smart create/update based on content analysis  | Auto-detect which file to update  |
-| `create_or_update_roadmap` | Create or update ROADMAP.md                    | Planning milestones and phases    |
-| `create_or_update_todo`    | Create or update TODO.md                       | Managing project-wide todos       |
-| `create_or_update_status`  | Create or update STATUS.md                     | Tracking project health           |
-| `create_or_update_index`   | Create or update index.md (contract file)      | Defining source mappings          |
-| `create_or_update_decisions` | Create or update DECISIONS.md                | Recording architecture decisions  |
-| `check_project_state`      | Check which project files exist                | Before making changes             |
+| Tool                         | Description                                    | Use When                         |
+| ---------------------------- | ---------------------------------------------- | -------------------------------- |
+| `init_project`               | Initialize `.project/` with all standard files | Starting a new project           |
+| `manage_project_file`        | Smart create/update based on content analysis  | Auto-detect which file to update |
+| `create_or_update_roadmap`   | Create or update ROADMAP.md                    | Planning milestones and phases   |
+| `create_or_update_todo`      | Create or update TODO.md                       | Managing project-wide todos      |
+| `create_or_update_status`    | Create or update STATUS.md                     | Tracking project health          |
+| `create_or_update_index`     | Create or update index.md (contract file)      | Defining source mappings         |
+| `create_or_update_decisions` | Create or update DECISIONS.md                  | Recording architecture decisions |
+| `check_project_state`        | Check which project files exist                | Before making changes            |
 
 ### Task Management Tools
 
-| Tool              | Description                                         | Use When                          |
-| ----------------- | --------------------------------------------------- | --------------------------------- |
-| `import_tasks`    | Parse plan/roadmap and add to BACKLOG.md            | Populating the backlog            |
-| `promote_task`    | Move task from BACKLOG to active work (creates YAML)| Starting work on a backlog item   |
-| `create_task`     | Create active task directly (bypass backlog)        | Urgent/immediate work             |
-| `update_task`     | Update any task field, transition status            | Modifying existing tasks          |
-| `get_next_task`   | Get dependency-aware next task(s) to work on        | Determining what to do next       |
-| `list_tasks`      | List/filter tasks with summary dashboard            | Reviewing all tasks               |
-| `archive_task`    | Move completed task to archive/                     | Cleaning up done work             |
-| `sync_todo_index` | Generate TODO.md dashboard from active tasks        | Updating the overview             |
+| Tool              | Description                                          | Use When                        |
+| ----------------- | ---------------------------------------------------- | ------------------------------- |
+| `import_tasks`    | Parse plan/roadmap and add to BACKLOG.md             | Populating the backlog          |
+| `promote_task`    | Move task from BACKLOG to active work (creates YAML) | Starting work on a backlog item |
+| `create_task`     | Create active task directly (bypass backlog)         | Urgent/immediate work           |
+| `update_task`     | Update any task field, transition status             | Modifying existing tasks        |
+| `get_next_task`   | Get dependency-aware next task(s) to work on         | Determining what to do next     |
+| `list_tasks`      | List/filter tasks with summary dashboard             | Reviewing all tasks             |
+| `archive_task`    | Move completed task to archive/                      | Cleaning up done work           |
+| `sync_todo_index` | Generate TODO.md dashboard from active tasks         | Updating the overview           |
 
 ### Quality Tools
 
-| Tool               | Description                                      | Use When                          |
-| ------------------ | ------------------------------------------------ | --------------------------------- |
-| `lint_project_docs` | Validate documentation against standards        | Before commits, ensuring quality  |
+| Tool                | Description                              | Use When                         |
+| ------------------- | ---------------------------------------- | -------------------------------- |
+| `lint_project_docs` | Validate documentation against standards | Before commits, ensuring quality |
 
 ---
 
 ## 📋 Task Management System
 
-Tasks flow from **planning → backlog → active → archive**. Only active tasks (10-30 items) are YAML files.
+Tasks flow from **planning → backlog → active → archive**. Only active tasks
+(10-30 items) are YAML files.
 
 ### Workflow
 
@@ -162,12 +167,12 @@ ROADMAP.md ──→ import_tasks ──→ BACKLOG.md ──→ promote_task �
                hundreds ok      hundreds ok     10-30 files     YAML files
 ```
 
-| Stage | Files | Purpose |
-|-------|-------|---------|
-| Planning | `ROADMAP.md` | Phases, milestones, high-level |
-| Backlog | `BACKLOG.md` | Prioritized queue, hundreds of items OK |
-| Active | `todos/*.md` | YAML files with full metadata, 10-30 items |
-| Archive | `archive/*.md` | Completed work history |
+| Stage    | Files          | Purpose                                    |
+| -------- | -------------- | ------------------------------------------ |
+| Planning | `ROADMAP.md`   | Phases, milestones, high-level             |
+| Backlog  | `BACKLOG.md`   | Prioritized queue, hundreds of items OK    |
+| Active   | `todos/*.md`   | YAML files with full metadata, 10-30 items |
+| Archive  | `archive/*.md` | Completed work history                     |
 
 ### Task File Format (Active Tasks)
 
@@ -240,10 +245,12 @@ Implement OAuth 2.0 authentication flow...
 
 ### Key Features
 
-- **Backlog-first**: Plan hundreds of items in `BACKLOG.md`, promote to active as needed
+- **Backlog-first**: Plan hundreds of items in `BACKLOG.md`, promote to active
+  as needed
 - **Small active queue**: Only 10-30 YAML task files at a time, not hundreds
 - **Stable IDs**: `{PROJECT}-{NNN}` format (e.g., `AUTH-001`, `API-042`)
-- **Dependencies**: `depends_on` array - task won't appear in `get_next_task` until deps are done
+- **Dependencies**: `depends_on` array - task won't appear in `get_next_task`
+  until deps are done
 - **Priority Sorting**: P0 (critical) → P3 (low) in all views
 - **Status Workflow**: `todo` → `in_progress` → `blocked` | `review` → `done`
 - **Archive history**: Completed work preserved in `archive/` for reference
@@ -284,16 +291,16 @@ my-project/
 
 **Purpose:** Current state, plans, decisions, and active work.
 
-| File          | Purpose                                        |
-| ------------- | ---------------------------------------------- |
-| `index.md`    | Contract file (defines how agents interpret sources) |
-| `BACKLOG.md`  | Prioritized work queue (future tasks, hundreds OK) |
-| `TODO.md`     | Task dashboard (auto-generated by `sync_todo_index`) |
-| `ROADMAP.md`  | Future plans, milestones, upcoming features    |
-| `STATUS.md`   | Current project status, recent changes, health |
-| `DECISIONS.md`| Architecture decisions, trade-offs, rationale  |
-| `todos/`      | Active task files (10-30 items, YAML frontmatter) |
-| `archive/`    | Completed tasks (history, reference) |
+| File           | Purpose                                              |
+| -------------- | ---------------------------------------------------- |
+| `index.md`     | Contract file (defines how agents interpret sources) |
+| `BACKLOG.md`   | Prioritized work queue (future tasks, hundreds OK)   |
+| `TODO.md`      | Task dashboard (auto-generated by `sync_todo_index`) |
+| `ROADMAP.md`   | Future plans, milestones, upcoming features          |
+| `STATUS.md`    | Current project status, recent changes, health       |
+| `DECISIONS.md` | Architecture decisions, trade-offs, rationale        |
+| `todos/`       | Active task files (10-30 items, YAML frontmatter)    |
+| `archive/`     | Completed tasks (history, reference)                 |
 
 #### `docs/` — Reference Truth
 
@@ -401,7 +408,8 @@ Returns tasks sorted by priority where all dependencies are complete.
 }
 ```
 
-Creates `.project/` with all standard files: `index.md`, `TODO.md`, `ROADMAP.md`, `STATUS.md`, `DECISIONS.md`, and `todos/` directory.
+Creates `.project/` with all standard files: `index.md`, `TODO.md`,
+`ROADMAP.md`, `STATUS.md`, `DECISIONS.md`, and `todos/` directory.
 
 ### Example: Import Tasks to Backlog
 
@@ -416,7 +424,8 @@ Creates `.project/` with all standard files: `index.md`, `TODO.md`, `ROADMAP.md`
 }
 ```
 
-Parses the roadmap and adds tasks to `BACKLOG.md`. Use `dry_run: true` to preview first.
+Parses the roadmap and adds tasks to `BACKLOG.md`. Use `dry_run: true` to
+preview first.
 
 ### Example: Promote Task to Active Work
 
@@ -523,4 +532,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-[Get Started](#-quick-start) • [Documentation](#-documentation) • [Examples](EXAMPLES.md) • [Report Issue](https://github.com/pouyanafisi/project-mcp/issues)
+[Get Started](#-quick-start) • [Documentation](#-documentation) •
+[Examples](EXAMPLES.md) •
+[Report Issue](https://github.com/pouyanafisi/project-mcp/issues)

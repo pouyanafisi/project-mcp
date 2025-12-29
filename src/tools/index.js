@@ -16,7 +16,7 @@ const modules = [search, projectFiles, tasks, backlog, lint];
 /**
  * Combined tool definitions
  */
-export const definitions = modules.flatMap(m => m.definitions);
+export const definitions = modules.flatMap((m) => m.definitions);
 
 /**
  * Combined handler map
@@ -40,4 +40,3 @@ export function getHandler(name) {
 export function hasHandler(name) {
 	return name in handlers;
 }
-

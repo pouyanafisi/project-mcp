@@ -91,7 +91,7 @@ export function extractTitle(content) {
  * @returns {string|null}
  */
 export function extractDescription(content) {
-	const lines = content.split('\n').filter(line => line.trim());
+	const lines = content.split('\n').filter((line) => line.trim());
 	for (let i = 1; i < Math.min(5, lines.length); i++) {
 		const line = lines[i].trim();
 		if (line && !line.startsWith('#') && line.length > 20) {
@@ -163,4 +163,3 @@ export function getCategory(path, source) {
 export { readFile, readdir, stat, writeFile, mkdir, unlink, rename };
 export { join, extname, basename };
 export { matter };
-

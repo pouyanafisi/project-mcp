@@ -48,7 +48,7 @@ export class ProjectMCPServer {
 			tools: toolDefinitions,
 		}));
 
-		this.server.setRequestHandler(CallToolRequestSchema, async request => {
+		this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
 			const { name, arguments: args } = request.params;
 
 			try {
@@ -81,4 +81,3 @@ export class ProjectMCPServer {
 		console.error(`Sources: .project/ (operational), root files, docs/ (reference)`);
 	}
 }
-
