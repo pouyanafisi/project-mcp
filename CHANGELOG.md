@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2024-12-29
+
+### Breaking Changes
+
+- **Entry point moved**: `index.js` → `src/index.js`
+  - Update MCP server configurations to use `src/index.js`
+  - The old monolithic `index.js` has been removed
+
+### Added
+
+- Modular architecture with organized codebase:
+  - `src/lib/` - Shared utilities (constants, dates, files, search, tasks)
+  - `src/tools/` - Tool handlers (search, project-files, tasks, backlog, lint)
+  - `src/prompts/` - MCP prompt definitions and handlers
+  - `src/resources/` - Resource handlers
+  - `src/server.js` - Main ProjectMCPServer class
+- Prettier code formatting with consistent style
+- ToolSDK registry configuration (`toolsdk-registry.json`)
+- `format` and `format:check` npm scripts
+
+### Changed
+
+- Codebase reorganized from monolithic 4019-line file to modular structure
+- All JavaScript, Markdown, and JSON files formatted with Prettier
+- Release notes moved to `docs/releases/` directory
+- Improved code maintainability and developer experience
+
+### Removed
+
+- Legacy monolithic `index.js` (replaced by modular `src/` structure)
+- Redundant documentation files (PRE_PUBLISH_CHECKLIST.md, PUBLISHING.md, REPOSITORY_IMPROVEMENTS.md)
+
 ## [1.4.2] - 2024-12-29
 
 ### Changed
