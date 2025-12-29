@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2024-12-29
+
+### Changed
+
+- Add Prettier for consistent code formatting
+- Format all JS, MD, and JSON files (37 files)
+- Add `format` and `format:check` npm scripts
+
+## [1.4.1] - 2024-12-29
+
+### Changed
+
+- Remove legacy monolithic `index.js` (4019 lines)
+- Modular architecture now fully in `src/` directory
+
+## [1.4.0] - 2024-12-29
+
+### Added
+
+- Modular architecture: break monolithic code into `src/lib/`, `src/tools/`, `src/prompts/`, `src/resources/`
+- ToolSDK registry config (`toolsdk-registry.json`) for discoverability
+- Entry point moved to `src/index.js` (15 lines vs 4019)
+
 ## [1.3.0] - 2024-12-29
 
 ### Added
