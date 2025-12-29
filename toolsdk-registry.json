@@ -2,72 +2,14 @@
   "type": "mcp-server",
   "name": "Project MCP",
   "packageName": "project-mcp",
-  "description": "AI-native project management MCP server with intent-based documentation search, task management (Jira-like IDs), backlog workflow, and project lifecycle tools. Maps natural language to the right sources automatically.",
+  "description": "AI-native project management with intent-based documentation search, Jira-like task IDs (PROJECT-001), backlog workflow (import → promote → archive), and project file management for ROADMAP/TODO/STATUS/DECISIONS. (22 tools)",
   "url": "https://github.com/pouyanafisi/project-mcp",
   "runtime": "node",
   "license": "MIT",
-  "author": "pouyanafisi",
-  "sourceUrl": "https://github.com/pouyanafisi/project-mcp",
-  "category": "developer-tools",
-  "features": [
-    "Intent-based documentation search",
-    "Task management with YAML frontmatter",
-    "Jira-like task IDs (PROJECT-001)",
-    "Dependency tracking between tasks",
-    "Backlog workflow (import → promote → archive)",
-    "Project file management (ROADMAP, TODO, STATUS, DECISIONS)",
-    "Documentation linting",
-    "MCP prompts for tool discoverability"
-  ],
-  "tools": [
-    "search_project",
-    "search_docs",
-    "get_doc",
-    "list_docs",
-    "get_doc_structure",
-    "manage_project_file",
-    "create_or_update_roadmap",
-    "create_or_update_todo",
-    "create_or_update_status",
-    "create_or_update_index",
-    "create_or_update_decisions",
-    "create_task",
-    "update_task",
-    "get_next_task",
-    "list_tasks",
-    "sync_todo_index",
-    "lint_project_docs",
-    "init_project",
-    "import_tasks",
-    "promote_task",
-    "archive_task",
-    "check_project_state"
-  ],
-  "prompts": [
-    "project-overview",
-    "what-should-i-work-on",
-    "start-new-project",
-    "import-plan-to-backlog",
-    "start-working-on-task",
-    "check-project-health",
-    "list-all-tasks",
-    "update-task-status"
-  ],
   "env": {
     "DOCS_DIR": {
       "description": "Path to documentation directory (default: ./docs)",
       "required": false
     }
-  },
-  "tags": [
-    "project-management",
-    "documentation",
-    "task-management",
-    "search",
-    "ai-agent",
-    "developer-tools",
-    "intent-based",
-    "backlog",
-    "roadmap"
-  ]
+  }
 }
