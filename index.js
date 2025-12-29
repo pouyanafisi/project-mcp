@@ -8,7 +8,7 @@ import {
 	ListResourcesRequestSchema,
 	ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { readFile, readdir, stat, writeFile, mkdir } from 'fs/promises';
+import { readFile, readdir, stat, writeFile, mkdir, unlink } from 'fs/promises';
 import { join, extname, dirname, basename } from 'path';
 import Fuse from 'fuse.js';
 import matter from 'gray-matter';
@@ -19,6 +19,8 @@ const PROJECT_ROOT = process.cwd();
 const DOCS_DIR = process.env.DOCS_DIR || join(PROJECT_ROOT, 'docs');
 const PROJECT_DIR = join(PROJECT_ROOT, '.project');
 const TODOS_DIR = join(PROJECT_DIR, 'todos');
+const ARCHIVE_DIR = join(PROJECT_DIR, 'archive');
+const BACKLOG_FILE = join(PROJECT_DIR, 'BACKLOG.md');
 
 /**
  * Intent to source mapping.
@@ -581,7 +583,7 @@ class ProjectMCPServer {
 				{
 					name: 'init_project',
 					description:
-						'Initializes the .project/ directory with all standard files following strict templates. Creates index.md (contract), TODO.md (dashboard), ROADMAP.md, STATUS.md, DECISIONS.md, and todos/ directory. Use this to bootstrap a new project with proper structure.',
+						'Initializes the .project/ directory with all standard files following strict templates. Creates index.md (contract), TODO.md (dashboard), BACKLOG.md (prioritized work queue), ROADMAP.md, STATUS.md, DECISIONS.md, and todos/ directory. Use this to bootstrap a new project with proper structure.',
 					inputSchema: {
 						type: 'object',
 						properties: {
@@ -605,7 +607,7 @@ class ProjectMCPServer {
 				{
 					name: 'import_tasks',
 					description:
-						'Parses a plan document (ROADMAP.md, requirements doc, or structured text) and generates YAML task files. Extracts tasks from markdown lists, phases, or sections and creates properly formatted task files with dependencies inferred from structure.',
+						'Parses a plan document and imports tasks to BACKLOG.md (not individual files). Use this to populate the backlog from a roadmap or requirements doc. Tasks stay in BACKLOG until promoted to active work via promote_task.',
 					inputSchema: {
 						type: 'object',
 						properties: {
@@ -623,10 +625,9 @@ class ProjectMCPServer {
 								type: 'string',
 								description: 'Project prefix for task IDs (e.g., "AUTH", "API"). Required.',
 							},
-							default_owner: {
+							phase: {
 								type: 'string',
-								description: 'Default owner for created tasks. Default: "unassigned".',
-								default: 'unassigned',
+								description: 'Optional: Only import tasks from a specific phase/section.',
 							},
 							default_priority: {
 								type: 'string',
@@ -636,11 +637,69 @@ class ProjectMCPServer {
 							},
 							dry_run: {
 								type: 'boolean',
-								description: 'If true, shows what would be created without actually creating files. Default: false.',
+								description: 'If true, shows what would be imported without modifying BACKLOG.md. Default: false.',
 								default: false,
 							},
 						},
 						required: ['source', 'project'],
+					},
+				},
+				{
+					name: 'promote_task',
+					description:
+						'Promotes a task from BACKLOG.md to an active YAML task file in todos/. Use this when starting work on a backlog item. Creates a full task file with YAML frontmatter, dependencies, and metadata.',
+					inputSchema: {
+						type: 'object',
+						properties: {
+							task_id: {
+								type: 'string',
+								description: 'The task ID to promote from backlog (e.g., "AUTH-001").',
+							},
+							owner: {
+								type: 'string',
+								description: 'Who will work on this task. Default: "unassigned".',
+								default: 'unassigned',
+							},
+							priority: {
+								type: 'string',
+								description: 'Priority override. If not set, uses priority from backlog.',
+								enum: ['P0', 'P1', 'P2', 'P3', ''],
+							},
+							depends_on: {
+								type: 'array',
+								items: { type: 'string' },
+								description: 'Task IDs this depends on (e.g., ["AUTH-002"]). Only active tasks can be dependencies.',
+							},
+							estimate: {
+								type: 'string',
+								description: 'Time estimate (e.g., "2h", "1d", "3d").',
+							},
+							due: {
+								type: 'string',
+								description: 'Due date in YYYY-MM-DD format.',
+							},
+						},
+						required: ['task_id'],
+					},
+				},
+				{
+					name: 'archive_task',
+					description:
+						'Archives a completed task by moving it from todos/ to archive/. Keeps the active task queue small and focused. Archived tasks are preserved for history but excluded from get_next_task.',
+					inputSchema: {
+						type: 'object',
+						properties: {
+							task_id: {
+								type: 'string',
+								description: 'The task ID to archive (e.g., "AUTH-001"). Must have status "done".',
+							},
+							force: {
+								type: 'boolean',
+								description: 'Archive even if not marked done. Default: false.',
+								default: false,
+							},
+						},
+						required: ['task_id'],
 					},
 				},
 				{
@@ -698,6 +757,10 @@ class ProjectMCPServer {
 						return await this.initProject(args);
 					case 'import_tasks':
 						return await this.importTasks(args);
+					case 'promote_task':
+						return await this.promoteTask(args);
+					case 'archive_task':
+						return await this.archiveTask(args);
 					case 'check_project_state':
 						return await this.checkProjectState(args);
 					default:
@@ -1247,6 +1310,14 @@ ${result.snippet}
 	async ensureTodosDir() {
 		try {
 			await mkdir(TODOS_DIR, { recursive: true });
+		} catch (error) {
+			// Directory might already exist, that's okay
+		}
+	}
+
+	async ensureArchiveDir() {
+		try {
+			await mkdir(ARCHIVE_DIR, { recursive: true });
 		} catch (error) {
 			// Directory might already exist, that's okay
 		}
@@ -2796,11 +2867,13 @@ Searches: \`.project/\` only
 | File | Purpose |
 |------|---------|
 | \`index.md\` | This file - contract and source mappings |
-| \`TODO.md\` | Task dashboard (auto-generated) |
+| \`BACKLOG.md\` | Prioritized work queue (future tasks) |
+| \`TODO.md\` | Task dashboard (active work, auto-generated) |
 | \`ROADMAP.md\` | Project phases and milestones |
 | \`STATUS.md\` | Current project health and progress |
 | \`DECISIONS.md\` | Architecture decisions and rationale |
-| \`todos/\` | Individual task files with YAML frontmatter |
+| \`todos/\` | Active task files (10-30 items, not hundreds) |
+| \`archive/\` | Completed tasks (for history) |
 
 ## Principles
 
@@ -2992,33 +3065,78 @@ updated: ${this.getISODate()}
 | 🔴 Blocked | 0 |
 | ✅ Done | 0 |
 
-## 🎯 Next Up
+## 🎯 Next Up (Active Tasks)
 
-*No tasks yet. Create tasks using \`create_task\` tool.*
+*No active tasks. Promote tasks from BACKLOG.md using \`promote_task\`.*
 
-## Getting Started
+## Workflow
 
-1. **Create tasks:** Use \`create_task\` with project, title, and priority
-2. **View next task:** Use \`get_next_task\` to see what to work on
-3. **Update status:** Use \`update_task\` to transition task status
-4. **Sync dashboard:** Use \`sync_todo_index\` to refresh this file
+\`\`\`
+ROADMAP.md → import_tasks → BACKLOG.md → promote_task → todos/*.md → archive_task → archive/
+   (plan)      (extract)      (queue)      (activate)    (work)      (complete)    (history)
+\`\`\`
 
-### Example: Create a Task
+1. **Plan:** Define phases in ROADMAP.md
+2. **Import:** Use \`import_tasks\` to populate BACKLOG.md
+3. **Promote:** Use \`promote_task\` to activate work (creates YAML file)
+4. **Work:** Use \`get_next_task\` to see what to do, \`update_task\` to track
+5. **Complete:** Use \`archive_task\` to move done items to archive
 
-\`\`\`json
-{
-  "tool": "create_task",
-  "arguments": {
-    "title": "Set up development environment",
-    "project": "${project_name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 6) || 'PROJ'}",
-    "priority": "P1",
-    "owner": "developer"
-  }
-}
+---
+*This file is auto-generated by \`sync_todo_index\`. Active tasks are in \`.project/todos/\`.*
+`,
+
+			'BACKLOG.md': `---
+title: ${project_name} - Backlog
+created: ${this.getISODate()}
+updated: ${this.getISODate()}
+---
+
+# Backlog
+
+**Last Updated:** ${date}
+
+This is the prioritized queue of future work. Items here are **planned but not yet active**.
+
+## How to Use
+
+1. **Add items:** Use \`import_tasks\` to import from ROADMAP.md or add manually
+2. **Promote to active:** Use \`promote_task\` when ready to start work
+3. **Keep it prioritized:** P0 items at top, P3 at bottom
+
+## Queue
+
+### P0 - Critical
+*No critical items*
+
+### P1 - High Priority
+*No high priority items*
+
+### P2 - Medium Priority
+*No medium priority items*
+
+### P3 - Low Priority
+*No low priority items*
+
+---
+
+## Item Format
+
+Each backlog item should follow this format:
+
+\`\`\`markdown
+- [ ] **{ID}**: {Title} [P{0-3}] [{tags}]
+  {Optional description}
+\`\`\`
+
+Example:
+\`\`\`markdown
+- [ ] **AUTH-001**: Implement user login [P1] [security]
+  Basic username/password authentication
 \`\`\`
 
 ---
-*This file is auto-generated by \`sync_todo_index\`. Tasks are in \`.project/todos/\`.*
+*Use \`promote_task\` to move items to active work in todos/*
 `,
 		};
 
@@ -3042,6 +3160,13 @@ updated: ${this.getISODate()}
 			await writeFile(todosGitkeep, '', 'utf-8');
 		}
 
+		// Create archive directory
+		await this.ensureArchiveDir();
+		const archiveGitkeep = join(ARCHIVE_DIR, '.gitkeep');
+		if (!(await this.fileExists(archiveGitkeep))) {
+			await writeFile(archiveGitkeep, '', 'utf-8');
+		}
+
 		let result = `## Project Initialized: ${project_name}\n\n`;
 		result += `**Location:** \`.project/\`\n\n`;
 
@@ -3050,7 +3175,8 @@ updated: ${this.getISODate()}
 			for (const f of files) {
 				result += `- ✅ \`${f.file}\` (${f.action})\n`;
 			}
-			result += `- ✅ \`todos/\` directory\n\n`;
+			result += `- ✅ \`todos/\` directory (active work)\n`;
+			result += `- ✅ \`archive/\` directory (completed work)\n\n`;
 		}
 
 		if (skipped.length > 0) {
@@ -3080,17 +3206,16 @@ updated: ${this.getISODate()}
 			source,
 			source_type = 'file',
 			project,
-			default_owner = 'unassigned',
+			phase: filterPhase,
 			default_priority = 'P2',
 			dry_run = false,
 		} = args;
 
-		await this.ensureTodosDir();
+		await this.ensureProjectDir();
 
 		// Get content
 		let content;
 		if (source_type === 'file') {
-			// Try multiple locations
 			const locations = [
 				source,
 				join(PROJECT_ROOT, source),
@@ -3115,22 +3240,163 @@ updated: ${this.getISODate()}
 		}
 
 		// Parse tasks from content
-		const tasks = this.parseTasksFromContent(content, project.toUpperCase(), default_priority);
+		let tasks = this.parseTasksFromContent(content, project.toUpperCase(), default_priority);
+
+		// Filter by phase if specified
+		if (filterPhase) {
+			tasks = tasks.filter(t => t.phase && t.phase.toLowerCase().includes(filterPhase.toLowerCase()));
+		}
 
 		if (tasks.length === 0) {
 			return {
 				content: [{
 					type: 'text',
-					text: `⚠️ No tasks found in the source.\n\nThe parser looks for:\n- Markdown lists with \`[ ]\` or \`- \` items\n- Phase/section headers (## or ###)\n- Structured content with clear task items`,
+					text: `⚠️ No tasks found${filterPhase ? ` in phase "${filterPhase}"` : ''}.\n\nThe parser looks for:\n- Markdown lists with \`[ ]\` or \`- \` items\n- Phase/section headers (## or ###)`,
 				}],
 			};
 		}
 
-		// Assign owners and IDs
+		// Get existing IDs from BACKLOG.md and todos/
+		const existingIds = await this.getExistingTaskIds(project.toUpperCase());
+
+		// Assign sequential IDs
 		const projectPrefix = project.toUpperCase();
+		let nextNum = 1;
+		for (const task of tasks) {
+			while (existingIds.has(`${projectPrefix}-${String(nextNum).padStart(3, '0')}`)) {
+				nextNum++;
+			}
+			task.id = `${projectPrefix}-${String(nextNum).padStart(3, '0')}`;
+			existingIds.add(task.id);
+			nextNum++;
+		}
+
+		let result = `## Import to Backlog\n\n`;
+		result += `**Source:** ${source_type === 'file' ? source : '(inline content)'}\n`;
+		result += `**Project:** ${projectPrefix}\n`;
+		result += `**Tasks Found:** ${tasks.length}\n`;
+		if (filterPhase) result += `**Phase Filter:** ${filterPhase}\n`;
+		result += '\n';
+
+		// Group by priority
+		const byPriority = { P0: [], P1: [], P2: [], P3: [] };
+		for (const task of tasks) {
+			byPriority[task.priority] = byPriority[task.priority] || [];
+			byPriority[task.priority].push(task);
+		}
+
+		if (dry_run) {
+			result += `### Tasks to Import (Dry Run)\n\n`;
+			for (const pri of ['P0', 'P1', 'P2', 'P3']) {
+				if (byPriority[pri].length > 0) {
+					result += `**${pri}** (${byPriority[pri].length})\n`;
+					for (const task of byPriority[pri]) {
+						result += `- ${task.id}: ${task.title}${task.phase ? ` [${task.phase}]` : ''}\n`;
+					}
+					result += '\n';
+				}
+			}
+			result += `*Dry run - BACKLOG.md not modified. Run with \`dry_run: false\` to import.*\n`;
+		} else {
+			// Read or create BACKLOG.md
+			let backlogContent;
+			if (await this.fileExists(BACKLOG_FILE)) {
+				backlogContent = await readFile(BACKLOG_FILE, 'utf-8');
+			} else {
+				// Create default backlog structure
+				backlogContent = `---
+title: Backlog
+created: ${this.getISODate()}
+updated: ${this.getISODate()}
+---
+
+# Backlog
+
+**Last Updated:** ${this.getCurrentDate()}
+
+## Queue
+
+### P0 - Critical
+
+### P1 - High Priority
+
+### P2 - Medium Priority
+
+### P3 - Low Priority
+
+---
+*Use \`promote_task\` to move items to active work*
+`;
+			}
+
+			// Insert tasks into appropriate priority sections
+			for (const pri of ['P0', 'P1', 'P2', 'P3']) {
+				if (byPriority[pri].length === 0) continue;
+
+				const sectionHeader = pri === 'P0' ? '### P0 - Critical' :
+					pri === 'P1' ? '### P1 - High Priority' :
+					pri === 'P2' ? '### P2 - Medium Priority' : '### P3 - Low Priority';
+
+				// Build task entries
+				let newItems = '';
+				for (const task of byPriority[pri]) {
+					const tags = task.tags?.length > 0 ? ` [${task.tags.join(', ')}]` : '';
+					const phase = task.phase ? ` (${task.phase})` : '';
+					newItems += `- [ ] **${task.id}**: ${task.title}${tags}${phase}\n`;
+					if (task.subtasks?.length > 0) {
+						for (const sub of task.subtasks) {
+							newItems += `  - ${sub}\n`;
+						}
+					}
+				}
+
+				// Insert after section header
+				if (backlogContent.includes(sectionHeader)) {
+					backlogContent = backlogContent.replace(
+						new RegExp(`(${sectionHeader.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n)`, 'g'),
+						`$1${newItems}\n`
+					);
+				}
+			}
+
+			// Update timestamp
+			backlogContent = backlogContent.replace(
+				/\*\*Last Updated:\*\* .*/,
+				`**Last Updated:** ${this.getCurrentDate()}`
+			);
+			backlogContent = backlogContent.replace(
+				/updated: .*/,
+				`updated: ${this.getISODate()}`
+			);
+
+			await writeFile(BACKLOG_FILE, backlogContent, 'utf-8');
+
+			result += `### Tasks Imported to BACKLOG.md\n\n`;
+			for (const pri of ['P0', 'P1', 'P2', 'P3']) {
+				if (byPriority[pri].length > 0) {
+					result += `**${pri}:** ${byPriority[pri].length} tasks\n`;
+				}
+			}
+
+			result += `\n✅ **${tasks.length} tasks** added to BACKLOG.md\n\n`;
+			result += `### Next Steps\n\n`;
+			result += `1. Review BACKLOG.md and adjust priorities\n`;
+			result += `2. Use \`promote_task\` to activate items for work\n`;
+			result += `3. Active tasks will appear in \`get_next_task\`\n`;
+		}
+
+		return {
+			content: [{ type: 'text', text: result }],
+		};
+	}
+
+	/**
+	 * Get all existing task IDs from BACKLOG.md and todos/
+	 */
+	async getExistingTaskIds(projectPrefix) {
 		const existingIds = new Set();
-		
-		// Get existing task IDs
+
+		// Check todos/ directory
 		try {
 			const files = await readdir(TODOS_DIR);
 			for (const file of files) {
@@ -3141,94 +3407,203 @@ updated: ${this.getISODate()}
 			// Directory might not exist
 		}
 
-		// Assign sequential IDs
-		let nextNum = 1;
-		for (const task of tasks) {
-			while (existingIds.has(`${projectPrefix}-${String(nextNum).padStart(3, '0')}`)) {
-				nextNum++;
+		// Check archive/ directory
+		try {
+			const files = await readdir(ARCHIVE_DIR);
+			for (const file of files) {
+				const match = file.match(/^([A-Z]+-\d+)\.md$/);
+				if (match) existingIds.add(match[1]);
 			}
-			task.id = `${projectPrefix}-${String(nextNum).padStart(3, '0')}`;
-			task.owner = default_owner;
-			existingIds.add(task.id);
-			nextNum++;
+		} catch {
+			// Directory might not exist
 		}
 
-		// Infer dependencies from structure (tasks in same section depend on previous)
-		let lastParentId = null;
-		for (let i = 0; i < tasks.length; i++) {
-			const task = tasks[i];
-			if (task.isParent) {
-				lastParentId = task.id;
-			} else if (lastParentId && task.phase === tasks.find(t => t.id === lastParentId)?.phase) {
-				// Child tasks depend on parent
-				task.depends_on = [lastParentId];
-			}
-		}
-
-		let result = `## Import Preview\n\n`;
-		result += `**Source:** ${source_type === 'file' ? source : '(inline content)'}\n`;
-		result += `**Project:** ${projectPrefix}\n`;
-		result += `**Tasks Found:** ${tasks.length}\n\n`;
-
-		if (dry_run) {
-			result += `### Tasks to Create (Dry Run)\n\n`;
-			result += `| ID | Priority | Title | Phase | Deps |\n`;
-			result += `|----|----------|-------|-------|------|\n`;
-			for (const task of tasks) {
-				result += `| ${task.id} | ${task.priority} | ${task.title.substring(0, 40)}${task.title.length > 40 ? '...' : ''} | ${task.phase || '-'} | ${task.depends_on?.join(', ') || '-'} |\n`;
-			}
-			result += `\n*This is a dry run. Run with \`dry_run: false\` to create files.*\n`;
-		} else {
-			// Create task files
-			const created = [];
-			for (const task of tasks) {
-				const filename = `${task.id}.md`;
-				const filePath = join(TODOS_DIR, filename);
-
-				const frontmatter = {
-					id: task.id,
-					title: task.title,
-					project: projectPrefix,
-					priority: task.priority,
-					status: 'todo',
-					owner: task.owner,
-					depends_on: task.depends_on || [],
-					blocked_by: [],
-					tags: task.tags || [],
-					created: this.getISODate(),
-					updated: this.getISODate(),
-				};
-				if (task.phase) frontmatter.phase = task.phase;
-
-				let taskContent = `# ${task.id}: ${task.title}\n\n`;
-				taskContent += `## Description\n\n${task.description || 'Imported from plan.'}\n\n`;
-				if (task.subtasks && task.subtasks.length > 0) {
-					taskContent += `## Subtasks\n\n`;
-					for (const sub of task.subtasks) {
-						taskContent += `- [ ] ${sub}\n`;
-					}
-					taskContent += '\n';
+		// Check BACKLOG.md
+		try {
+			if (await this.fileExists(BACKLOG_FILE)) {
+				const backlog = await readFile(BACKLOG_FILE, 'utf-8');
+				const idMatches = backlog.matchAll(/\*\*([A-Z]+-\d+)\*\*/g);
+				for (const match of idMatches) {
+					existingIds.add(match[1]);
 				}
-				taskContent += `## Notes\n\n`;
-
-				const fileContent = matter.stringify(taskContent, frontmatter);
-				await writeFile(filePath, fileContent, 'utf-8');
-				created.push(task);
 			}
-
-			result += `### Tasks Created\n\n`;
-			result += `| ID | Priority | Title |\n`;
-			result += `|----|----------|-------|\n`;
-			for (const task of created) {
-				result += `| ${task.id} | ${task.priority} | ${task.title.substring(0, 50)}${task.title.length > 50 ? '...' : ''} |\n`;
-			}
-
-			result += `\n✅ **${created.length} tasks created** in \`.project/todos/\`\n\n`;
-			result += `### Next Steps\n\n`;
-			result += `1. Run \`sync_todo_index\` to update the dashboard\n`;
-			result += `2. Use \`get_next_task\` to see what to work on\n`;
-			result += `3. Run \`lint_project_docs\` to validate\n`;
+		} catch {
+			// File might not exist
 		}
+
+		return existingIds;
+	}
+
+	/**
+	 * Promote a task from BACKLOG.md to active work (creates YAML file)
+	 */
+	async promoteTask(args) {
+		const {
+			task_id,
+			owner = 'unassigned',
+			priority,
+			depends_on = [],
+			estimate,
+			due,
+		} = args;
+
+		await this.ensureProjectDir();
+		await this.ensureTodosDir();
+
+		const id = task_id.toUpperCase();
+
+		// Check if already active
+		const activeFile = join(TODOS_DIR, `${id}.md`);
+		if (await this.fileExists(activeFile)) {
+			return {
+				content: [{ type: 'text', text: `⚠️ Task ${id} is already active in todos/` }],
+			};
+		}
+
+		// Find task in BACKLOG.md
+		if (!(await this.fileExists(BACKLOG_FILE))) {
+			return {
+				content: [{ type: 'text', text: `❌ BACKLOG.md not found. Run \`init_project\` first.` }],
+				isError: true,
+			};
+		}
+
+		let backlog = await readFile(BACKLOG_FILE, 'utf-8');
+
+		// Find the task line
+		const taskRegex = new RegExp(`^- \\[ \\] \\*\\*${id}\\*\\*:\\s*(.+?)(?:\\s*\\[([^\\]]+)\\])?(?:\\s*\\(([^)]+)\\))?$`, 'm');
+		const match = backlog.match(taskRegex);
+
+		if (!match) {
+			return {
+				content: [{ type: 'text', text: `❌ Task ${id} not found in BACKLOG.md` }],
+				isError: true,
+			};
+		}
+
+		const title = match[1].trim();
+		const tags = match[2] ? match[2].split(',').map(t => t.trim()) : [];
+		const phase = match[3] || null;
+
+		// Detect priority from backlog section
+		let taskPriority = priority || 'P2';
+		if (!priority) {
+			// Find which section the task is in
+			const beforeTask = backlog.substring(0, backlog.indexOf(match[0]));
+			if (beforeTask.includes('### P0')) taskPriority = 'P0';
+			else if (beforeTask.includes('### P1')) taskPriority = 'P1';
+			else if (beforeTask.includes('### P2')) taskPriority = 'P2';
+			else if (beforeTask.includes('### P3')) taskPriority = 'P3';
+		}
+
+		// Extract project from ID
+		const projectMatch = id.match(/^([A-Z]+)-/);
+		const project = projectMatch ? projectMatch[1] : 'PROJ';
+
+		// Create YAML task file
+		const frontmatter = {
+			id,
+			title,
+			project,
+			priority: taskPriority,
+			status: 'todo',
+			owner,
+			depends_on,
+			blocked_by: [],
+			tags,
+			created: this.getISODate(),
+			updated: this.getISODate(),
+		};
+		if (estimate) frontmatter.estimate = estimate;
+		if (due) frontmatter.due = due;
+		if (phase) frontmatter.phase = phase;
+
+		let taskContent = `# ${id}: ${title}\n\n`;
+		taskContent += `## Description\n\nPromoted from backlog.\n\n`;
+		taskContent += `## Subtasks\n\n`;
+		taskContent += `## Notes\n\n`;
+
+		const fileContent = matter.stringify(taskContent, frontmatter);
+		await writeFile(activeFile, fileContent, 'utf-8');
+
+		// Mark as promoted in BACKLOG.md (change [ ] to [promoted])
+		backlog = backlog.replace(
+			new RegExp(`^(- )\\[ \\]( \\*\\*${id}\\*\\*)`, 'm'),
+			'$1[promoted]$2'
+		);
+
+		// Update backlog timestamp
+		backlog = backlog.replace(
+			/\*\*Last Updated:\*\* .*/,
+			`**Last Updated:** ${this.getCurrentDate()}`
+		);
+
+		await writeFile(BACKLOG_FILE, backlog, 'utf-8');
+
+		let result = `## Task Promoted: ${id}\n\n`;
+		result += `**Title:** ${title}\n`;
+		result += `**Priority:** ${taskPriority}\n`;
+		result += `**Owner:** ${owner}\n`;
+		result += `**File:** \`todos/${id}.md\`\n\n`;
+		if (depends_on.length > 0) result += `**Depends on:** ${depends_on.join(', ')}\n`;
+		if (estimate) result += `**Estimate:** ${estimate}\n`;
+		if (due) result += `**Due:** ${due}\n`;
+
+		result += `\n✅ Task is now active. Use \`get_next_task\` to see the execution queue.`;
+
+		return {
+			content: [{ type: 'text', text: result }],
+		};
+	}
+
+	/**
+	 * Archive a completed task
+	 */
+	async archiveTask(args) {
+		const { task_id, force = false } = args;
+
+		await this.ensureArchiveDir();
+
+		const id = task_id.toUpperCase();
+		const activeFile = join(TODOS_DIR, `${id}.md`);
+		const archiveFile = join(ARCHIVE_DIR, `${id}.md`);
+
+		if (!(await this.fileExists(activeFile))) {
+			return {
+				content: [{ type: 'text', text: `❌ Task ${id} not found in todos/` }],
+				isError: true,
+			};
+		}
+
+		// Read task to check status
+		const content = await readFile(activeFile, 'utf-8');
+		const parsed = matter(content);
+
+		if (parsed.data.status !== 'done' && !force) {
+			return {
+				content: [{
+					type: 'text',
+					text: `⚠️ Task ${id} is not done (status: ${parsed.data.status}).\n\nUse \`update_task\` to mark it done first, or use \`force: true\` to archive anyway.`,
+				}],
+			};
+		}
+
+		// Add archived timestamp
+		parsed.data.archived = this.getISODate();
+		parsed.data.updated = this.getISODate();
+
+		const updatedContent = matter.stringify(parsed.content, parsed.data);
+
+		// Move to archive
+		await writeFile(archiveFile, updatedContent, 'utf-8');
+		await unlink(activeFile);
+
+		let result = `## Task Archived: ${id}\n\n`;
+		result += `**Title:** ${parsed.data.title}\n`;
+		result += `**Status:** ${parsed.data.status}\n`;
+		result += `**Archived:** ${parsed.data.archived}\n`;
+		result += `**File:** \`archive/${id}.md\`\n\n`;
+		result += `✅ Task moved from \`todos/\` to \`archive/\`. It will no longer appear in \`get_next_task\`.`;
 
 		return {
 			content: [{ type: 'text', text: result }],

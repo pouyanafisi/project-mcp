@@ -25,8 +25,9 @@ When users say "project", "docs", or "todos", `project-mcp` automatically search
 		- [Task Management Tools](#task-management-tools)
 		- [Quality Tools](#quality-tools)
 	- [📋 Task Management System](#-task-management-system)
-		- [Task File Format](#task-file-format)
-		- [Task Workflow](#task-workflow)
+		- [Workflow](#workflow)
+		- [Task File Format (Active Tasks)](#task-file-format-active-tasks)
+		- [Agent Execution Loop](#agent-execution-loop)
 		- [Key Features](#key-features)
 	- [🏗️ Project Structure Guide](#️-project-structure-guide)
 		- [Recommended Directory Structure](#recommended-directory-structure)
@@ -39,6 +40,8 @@ When users say "project", "docs", or "todos", `project-mcp` automatically search
 		- [Example: `.project/index.md` (Contract File)](#example-projectindexmd-contract-file)
 		- [Example: Task Creation](#example-task-creation)
 		- [Example: Getting Next Task](#example-getting-next-task)
+		- [Example: Initialize Project](#example-initialize-project)
+		- [Example: Import Tasks from Roadmap](#example-import-tasks-from-roadmap)
 	- [⚙️ Configuration](#️-configuration)
 		- [Custom Documentation Directory](#custom-documentation-directory)
 		- [Custom Working Directory](#custom-working-directory)
@@ -128,12 +131,14 @@ Add to `.mcp.json`:
 
 | Tool              | Description                                         | Use When                          |
 | ----------------- | --------------------------------------------------- | --------------------------------- |
-| `create_task`     | Create task with YAML frontmatter and Jira-like ID  | Starting new work                 |
+| `import_tasks`    | Parse plan/roadmap and add to BACKLOG.md            | Populating the backlog            |
+| `promote_task`    | Move task from BACKLOG to active work (creates YAML)| Starting work on a backlog item   |
+| `create_task`     | Create active task directly (bypass backlog)        | Urgent/immediate work             |
 | `update_task`     | Update any task field, transition status            | Modifying existing tasks          |
 | `get_next_task`   | Get dependency-aware next task(s) to work on        | Determining what to do next       |
 | `list_tasks`      | List/filter tasks with summary dashboard            | Reviewing all tasks               |
-| `import_tasks`    | Parse plan/roadmap and generate YAML task files     | Bulk task creation from docs      |
-| `sync_todo_index` | Generate TODO.md dashboard from all tasks           | Updating the overview             |
+| `archive_task`    | Move completed task to archive/                     | Cleaning up done work             |
+| `sync_todo_index` | Generate TODO.md dashboard from active tasks        | Updating the overview             |
 
 ### Quality Tools
 
@@ -145,9 +150,24 @@ Add to `.mcp.json`:
 
 ## 📋 Task Management System
 
-Tasks are stored with YAML frontmatter for structured metadata. Uses Jira-like IDs for stable references.
+Tasks flow from **planning → backlog → active → archive**. Only active tasks (10-30 items) are YAML files.
 
-### Task File Format
+### Workflow
+
+```
+ROADMAP.md ──→ import_tasks ──→ BACKLOG.md ──→ promote_task ──→ todos/*.md ──→ archive_task ──→ archive/
+  (plan)        (extract)         (queue)        (activate)      (work)        (complete)       (history)
+               hundreds ok      hundreds ok     10-30 files     YAML files
+```
+
+| Stage | Files | Purpose |
+|-------|-------|---------|
+| Planning | `ROADMAP.md` | Phases, milestones, high-level |
+| Backlog | `BACKLOG.md` | Prioritized queue, hundreds of items OK |
+| Active | `todos/*.md` | YAML files with full metadata, 10-30 items |
+| Archive | `archive/*.md` | Completed work history |
+
+### Task File Format (Active Tasks)
 
 ```yaml
 ---
@@ -184,44 +204,47 @@ Implement OAuth 2.0 authentication flow...
 ## Notes
 ```
 
-### Task Workflow
+### Agent Execution Loop
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Agent calls get_next_task                                  │
-│  → Returns AUTH-001 (dependencies met, highest priority)    │
+│  1. promote_task(task_id: "AUTH-001")                       │
+│     → Creates todos/AUTH-001.md from BACKLOG.md             │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Agent calls update_task(id: "AUTH-001", status: "in_progress") │
+│  2. get_next_task()                                         │
+│     → Returns AUTH-001 (dependencies met, highest priority) │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Agent does the work                                        │
+│  3. update_task(id: "AUTH-001", status: "in_progress")      │
+│     → Agent works on the task                               │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Agent calls update_task(id: "AUTH-001", status: "done")    │
+│  4. update_task(id: "AUTH-001", status: "done")             │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Agent calls get_next_task                                  │
-│  → Now AUTH-004 is available (was depending on AUTH-001)    │
+│  5. archive_task(task_id: "AUTH-001")                       │
+│     → Moves to archive/, keeps todos/ small                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Features
 
+- **Backlog-first**: Plan hundreds of items in `BACKLOG.md`, promote to active as needed
+- **Small active queue**: Only 10-30 YAML task files at a time, not hundreds
 - **Stable IDs**: `{PROJECT}-{NNN}` format (e.g., `AUTH-001`, `API-042`)
 - **Dependencies**: `depends_on` array - task won't appear in `get_next_task` until deps are done
 - **Priority Sorting**: P0 (critical) → P3 (low) in all views
 - **Status Workflow**: `todo` → `in_progress` → `blocked` | `review` → `done`
-- **Subtask Checklists**: Track granular progress within tasks
-- **Estimates & Due Dates**: For planning
+- **Archive history**: Completed work preserved in `archive/` for reference
 
 ---
 
@@ -233,19 +256,20 @@ Implement OAuth 2.0 authentication flow...
 my-project/
 ├── .project/                    # Operational truth (current state)
 │   ├── index.md                 # Contract file (defines source mappings)
+│   ├── BACKLOG.md               # Prioritized work queue (hundreds of items OK)
 │   ├── TODO.md                  # Task dashboard (auto-generated)
 │   ├── ROADMAP.md               # Project roadmap and milestones
 │   ├── STATUS.md                # Current project status
 │   ├── DECISIONS.md             # Architecture and design decisions
-│   └── todos/                   # Individual task files
-│       ├── AUTH-001.md
-│       ├── AUTH-002.md
-│       └── API-001.md
+│   ├── todos/                   # Active tasks (10-30 YAML files)
+│   │   ├── AUTH-001.md
+│   │   └── AUTH-002.md
+│   └── archive/                 # Completed tasks (history)
+│       └── AUTH-000.md
 │
 ├── docs/                        # Reference truth (long-form docs)
 │   ├── README.md
 │   ├── architecture/
-│   ├── api/
 │   └── guides/
 │
 ├── README.md                    # Project overview
@@ -261,11 +285,13 @@ my-project/
 | File          | Purpose                                        |
 | ------------- | ---------------------------------------------- |
 | `index.md`    | Contract file (defines how agents interpret sources) |
+| `BACKLOG.md`  | Prioritized work queue (future tasks, hundreds OK) |
 | `TODO.md`     | Task dashboard (auto-generated by `sync_todo_index`) |
 | `ROADMAP.md`  | Future plans, milestones, upcoming features    |
 | `STATUS.md`   | Current project status, recent changes, health |
 | `DECISIONS.md`| Architecture decisions, trade-offs, rationale  |
-| `todos/`      | Individual task files with YAML frontmatter    |
+| `todos/`      | Active task files (10-30 items, YAML frontmatter) |
+| `archive/`    | Completed tasks (history, reference) |
 
 #### `docs/` — Reference Truth
 
@@ -375,7 +401,7 @@ Returns tasks sorted by priority where all dependencies are complete.
 
 Creates `.project/` with all standard files: `index.md`, `TODO.md`, `ROADMAP.md`, `STATUS.md`, `DECISIONS.md`, and `todos/` directory.
 
-### Example: Import Tasks from Roadmap
+### Example: Import Tasks to Backlog
 
 ```json
 {
@@ -383,13 +409,40 @@ Creates `.project/` with all standard files: `index.md`, `TODO.md`, `ROADMAP.md`
 	"arguments": {
 		"source": ".project/ROADMAP.md",
 		"project": "APP",
-		"default_owner": "cursor",
 		"dry_run": true
 	}
 }
 ```
 
-Parses the roadmap and creates YAML task files. Use `dry_run: true` to preview first.
+Parses the roadmap and adds tasks to `BACKLOG.md`. Use `dry_run: true` to preview first.
+
+### Example: Promote Task to Active Work
+
+```json
+{
+	"tool": "promote_task",
+	"arguments": {
+		"task_id": "APP-001",
+		"owner": "cursor",
+		"estimate": "2h"
+	}
+}
+```
+
+Moves task from `BACKLOG.md` to `todos/APP-001.md` with full YAML frontmatter.
+
+### Example: Archive Completed Task
+
+```json
+{
+	"tool": "archive_task",
+	"arguments": {
+		"task_id": "APP-001"
+	}
+}
+```
+
+Moves completed task from `todos/` to `archive/` to keep active queue small.
 
 ---
 
@@ -452,7 +505,7 @@ node index.js
 - **[Contributing](CONTRIBUTING.md)** — How to contribute
 - **[Security](SECURITY.md)** — Security policy
 - **[Changelog](CHANGELOG.md)** — Version history
-- **[Release Notes v1.2.0](RELEASE_NOTES_v1.2.0.md)** — Latest release
+- **[Release Notes v1.3.0](RELEASE_NOTES_v1.3.0.md)** — Latest release
 
 ---
 

@@ -2,6 +2,8 @@
 
 **Release Date:** December 29, 2024
 
+> **Note:** See [RELEASE_NOTES_v1.3.0.md](RELEASE_NOTES_v1.3.0.md) for the latest release.
+
 ## Overview
 
 This release adds tools for bootstrapping new projects with standard file structures and importing tasks from existing plan documents. These tools ensure consistent project setup and enable bulk task creation from roadmaps.

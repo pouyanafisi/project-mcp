@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2024-12-29
+
+### Added
+- `BACKLOG.md` file for prioritized work queue (hundreds of items OK)
+- `promote_task` tool to move backlog items to active YAML task files
+- `archive_task` tool to move completed tasks to archive directory
+- `archive/` directory for completed task history
+- Phase filtering in `import_tasks` tool
+
+### Changed
+- **Breaking workflow change**: `import_tasks` now adds to `BACKLOG.md` instead of creating YAML files
+- Active tasks in `todos/` should be kept to 10-30 items, not hundreds
+- Updated `init_project` to create `BACKLOG.md` and `archive/` directory
+- README updated with new backlog-first workflow documentation
+
+### Architecture
+- Tasks flow: ROADMAP → BACKLOG → todos/ → archive/
+- Planning docs can have hundreds of items
+- Only promoted (active) tasks become YAML files
+- Keeps file system clean and agent execution queue focused
+
 ## [1.2.0] - 2024-12-29
 
 ### Added
