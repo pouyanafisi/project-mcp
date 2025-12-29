@@ -1,6 +1,6 @@
 /**
  * Task management tools.
- * Handles: create_task, update_task, get_next_task, list_tasks, sync_todo_index
+ * Handles: create_task, update_task, get_task, delete_task, get_next_task, list_tasks, sync_todo_index
  */
 
 import {
@@ -18,6 +18,7 @@ import {
 	ensureProjectDir,
 	fileExists,
 	matter,
+	unlink,
 } from '../lib/files.js';
 import { getCurrentDate, getISODate } from '../lib/dates.js';
 import {
@@ -168,6 +169,41 @@ export const definitions = [
 				complete_subtask: {
 					type: 'string',
 					description: 'Mark a subtask as complete (partial match on subtask text).',
+				},
+			},
+			required: ['id'],
+		},
+	},
+	{
+		name: 'get_task',
+		description:
+			'Reads and returns a specific task by ID. Shows all metadata including frontmatter, description, subtasks, and notes.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				id: {
+					type: 'string',
+					description: 'The task ID to read (e.g., "AUTH-001").',
+				},
+			},
+			required: ['id'],
+		},
+	},
+	{
+		name: 'delete_task',
+		description:
+			'Permanently deletes a task from todos/. Use with caution - this cannot be undone. Consider using archive_task instead for completed tasks.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				id: {
+					type: 'string',
+					description: 'The task ID to delete (e.g., "AUTH-001").',
+				},
+				confirm: {
+					type: 'boolean',
+					description: 'Must be true to confirm deletion. Default: false.',
+					default: false,
 				},
 			},
 			required: ['id'],
@@ -452,6 +488,103 @@ async function updateTask(args) {
 }
 
 /**
+ * Get task handler
+ */
+async function getTask(args) {
+	const { id } = args;
+	await ensureTodosDir();
+
+	const filename = `${id.toUpperCase()}.md`;
+	const filePath = join(TODOS_DIR, filename);
+
+	if (!(await fileExists(filePath))) {
+		return {
+			content: [{ type: 'text', text: `❌ Task not found: ${id}` }],
+			isError: true,
+		};
+	}
+
+	const fileContent = await readFile(filePath, 'utf-8');
+	const parsed = matter(fileContent);
+	const data = parsed.data;
+	const content = parsed.content;
+
+	let result = `## Task: ${data.id}\n\n`;
+	result += `### Metadata\n\n`;
+	result += `| Field | Value |\n`;
+	result += `|-------|-------|\n`;
+	result += `| **Title** | ${data.title} |\n`;
+	result += `| **Project** | ${data.project} |\n`;
+	result += `| **Priority** | ${data.priority} |\n`;
+	result += `| **Status** | ${data.status} |\n`;
+	result += `| **Owner** | ${data.owner} |\n`;
+	if (data.estimate) result += `| **Estimate** | ${data.estimate} |\n`;
+	if (data.due) result += `| **Due** | ${data.due} |\n`;
+	if (data.depends_on?.length > 0) result += `| **Depends On** | ${data.depends_on.join(', ')} |\n`;
+	if (data.blocked_by?.length > 0) result += `| **Blocked By** | ${data.blocked_by.join(', ')} |\n`;
+	if (data.tags?.length > 0) result += `| **Tags** | ${data.tags.join(', ')} |\n`;
+	result += `| **Created** | ${data.created} |\n`;
+	result += `| **Updated** | ${data.updated} |\n`;
+	if (data.completed) result += `| **Completed** | ${data.completed} |\n`;
+
+	result += `\n### Content\n\n`;
+	result += content.trim() || '*No content*';
+
+	result += `\n\n---\n**File:** \`todos/${filename}\``;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
+ * Delete task handler
+ */
+async function deleteTask(args) {
+	const { id, confirm = false } = args;
+
+	if (!confirm) {
+		return {
+			content: [
+				{
+					type: 'text',
+					text: `⚠️ **Deletion requires confirmation**\n\nTo delete task ${id.toUpperCase()}, call again with \`confirm: true\`.\n\nNote: Consider using \`archive_task\` instead to preserve history.`,
+				},
+			],
+		};
+	}
+
+	await ensureTodosDir();
+
+	const filename = `${id.toUpperCase()}.md`;
+	const filePath = join(TODOS_DIR, filename);
+
+	if (!(await fileExists(filePath))) {
+		return {
+			content: [{ type: 'text', text: `❌ Task not found: ${id}` }],
+			isError: true,
+		};
+	}
+
+	// Read task info before deletion
+	const fileContent = await readFile(filePath, 'utf-8');
+	const parsed = matter(fileContent);
+	const data = parsed.data;
+
+	await unlink(filePath);
+
+	let result = `## Deleted Task: ${data.id}\n\n`;
+	result += `**Title:** ${data.title}\n`;
+	result += `**Status:** ${data.status}\n`;
+	result += `**File:** \`todos/${filename}\`\n\n`;
+	result += `⚠️ Task permanently deleted. This cannot be undone.`;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
  * Get next task handler
  */
 async function getNextTask(args) {
@@ -685,6 +818,8 @@ async function syncTodoIndex(args) {
 export const handlers = {
 	create_task: createTask,
 	update_task: updateTask,
+	get_task: getTask,
+	delete_task: deleteTask,
 	get_next_task: getNextTask,
 	list_tasks: listTasks,
 	sync_todo_index: syncTodoIndex,

@@ -1,79 +1,79 @@
 {
-	"name": "project-mcp",
-	"version": "3.0.0",
-	"description": "Intent-based MCP server for project documentation search. Maps natural language queries to the right sources automatically—no configuration needed. The standard for AI agent documentation search.",
-	"type": "module",
-	"main": "src/index.js",
-	"bin": {
-		"project-mcp": "src/index.js"
-	},
-	"scripts": {
-		"start": "node src/index.js",
-		"test": "node --test test/*.test.js",
-		"lint": "node --check src/index.js",
-		"format": "prettier --write \"**/*.{js,md,json}\"",
-		"format:check": "prettier --check \"**/*.{js,md,json}\"",
-		"prepublishOnly": "npm run lint && npm test"
-	},
-	"keywords": [
-		"mcp",
-		"model-context-protocol",
-		"mcp-server",
-		"documentation",
-		"documentation-search",
-		"docs-search",
-		"search",
-		"fuzzy-search",
-		"semantic-search",
-		"markdown",
-		"markdown-search",
-		"project-documentation",
-		"project-management",
-		"intent-based-search",
-		"intent-mapping",
-		"ai-agent",
-		"ai-assistant",
-		"claude",
-		"cursor",
-		"anthropic",
-		"ai-tools",
-		"developer-tools",
-		"documentation-tools",
-		"knowledge-base",
-		"project-knowledge",
-		"operational-truth",
-		"reference-documentation",
-		"fuse.js",
-		"natural-language",
-		"nlp",
-		"zero-config",
-		"automatic-indexing"
-	],
-	"author": "",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/pouyanafisi/project-mcp.git"
-	},
-	"bugs": {
-		"url": "https://github.com/pouyanafisi/project-mcp/issues"
-	},
-	"homepage": "https://github.com/pouyanafisi/project-mcp#readme",
-	"engines": {
-		"node": ">=18.0.0"
-	},
-	"dependencies": {
-		"@modelcontextprotocol/sdk": "^1.0.4",
-		"fuse.js": "^7.0.0",
-		"gray-matter": "^4.0.3",
-		"mime-types": "^2.1.35"
-	},
-	"devDependencies": {
-		"prettier": "^3.7.4"
-	},
-	"files": [
-		"src/",
-		"README.md",
-		"LICENSE"
-	]
+  "name": "project-mcp",
+  "version": "2.1.0",
+  "description": "Intent-based MCP server for project documentation search. Maps natural language queries to the right sources automatically—no configuration needed. The standard for AI agent documentation search.",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "project-mcp": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test test/*.test.js",
+    "lint": "node --check src/index.js",
+    "format": "prettier --write \"**/*.{js,md,json}\"",
+    "format:check": "prettier --check \"**/*.{js,md,json}\"",
+    "prepublishOnly": "npm run lint && npm test"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "documentation",
+    "documentation-search",
+    "docs-search",
+    "search",
+    "fuzzy-search",
+    "semantic-search",
+    "markdown",
+    "markdown-search",
+    "project-documentation",
+    "project-management",
+    "intent-based-search",
+    "intent-mapping",
+    "ai-agent",
+    "ai-assistant",
+    "claude",
+    "cursor",
+    "anthropic",
+    "ai-tools",
+    "developer-tools",
+    "documentation-tools",
+    "knowledge-base",
+    "project-knowledge",
+    "operational-truth",
+    "reference-documentation",
+    "fuse.js",
+    "natural-language",
+    "nlp",
+    "zero-config",
+    "automatic-indexing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pouyanafisi/project-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pouyanafisi/project-mcp/issues"
+  },
+  "homepage": "https://github.com/pouyanafisi/project-mcp#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "fuse.js": "^7.0.0",
+    "gray-matter": "^4.0.3",
+    "mime-types": "^2.1.35"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ]
 }

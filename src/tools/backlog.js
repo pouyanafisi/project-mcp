@@ -1,6 +1,6 @@
 /**
  * Backlog management tools.
- * Handles: import_tasks, promote_task, archive_task
+ * Handles: import_tasks, promote_task, archive_task, add_to_backlog, get_backlog, update_backlog_item, remove_from_backlog
  */
 
 import {
@@ -125,6 +125,121 @@ export const definitions = [
 					type: 'boolean',
 					description: 'Archive even if not marked done. Default: false.',
 					default: false,
+				},
+			},
+			required: ['task_id'],
+		},
+	},
+	{
+		name: 'add_to_backlog',
+		description:
+			'Adds a single item to BACKLOG.md. Use this for quick task creation without bulk import. Items are added to the specified priority section and can later be promoted to active work.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				title: {
+					type: 'string',
+					description: 'The task title/description.',
+				},
+				project: {
+					type: 'string',
+					description: 'Project prefix for the task ID (e.g., "AUTH", "API").',
+				},
+				priority: {
+					type: 'string',
+					description: 'Priority level. Default: "P2".',
+					enum: ['P0', 'P1', 'P2', 'P3'],
+					default: 'P2',
+				},
+				tags: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'Optional tags for categorization.',
+				},
+				phase: {
+					type: 'string',
+					description: 'Optional phase/milestone this task belongs to.',
+				},
+				subtasks: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'Optional subtasks to include.',
+				},
+			},
+			required: ['title', 'project'],
+		},
+	},
+	{
+		name: 'get_backlog',
+		description:
+			'Reads and returns the current backlog contents with optional filtering. Shows tasks organized by priority with counts and summary.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				priority: {
+					type: 'string',
+					description: 'Filter by priority level.',
+					enum: ['P0', 'P1', 'P2', 'P3', ''],
+				},
+				project: {
+					type: 'string',
+					description: 'Filter by project prefix.',
+				},
+				include_promoted: {
+					type: 'boolean',
+					description: 'Include already-promoted items. Default: false.',
+					default: false,
+				},
+			},
+		},
+	},
+	{
+		name: 'update_backlog_item',
+		description:
+			'Updates an item in BACKLOG.md. Can change priority, title, tags, or phase without promoting to active work.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				task_id: {
+					type: 'string',
+					description: 'The task ID to update (e.g., "AUTH-001").',
+				},
+				title: {
+					type: 'string',
+					description: 'New title for the task.',
+				},
+				priority: {
+					type: 'string',
+					description: 'New priority level (will move to new section).',
+					enum: ['P0', 'P1', 'P2', 'P3'],
+				},
+				tags: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'New tags (replaces existing).',
+				},
+				phase: {
+					type: 'string',
+					description: 'New phase/milestone.',
+				},
+			},
+			required: ['task_id'],
+		},
+	},
+	{
+		name: 'remove_from_backlog',
+		description:
+			'Removes an item from BACKLOG.md without promoting it. Use for tasks that are no longer needed or were added by mistake.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				task_id: {
+					type: 'string',
+					description: 'The task ID to remove (e.g., "AUTH-001").',
+				},
+				reason: {
+					type: 'string',
+					description: 'Optional reason for removal (for logging).',
 				},
 			},
 			required: ['task_id'],
@@ -492,10 +607,345 @@ async function archiveTask(args) {
 }
 
 /**
+ * Add single item to backlog handler
+ */
+async function addToBacklog(args) {
+	const { title, project, priority = 'P2', tags = [], phase, subtasks = [] } = args;
+
+	await ensureProjectDir();
+
+	// Get existing IDs to generate next ID
+	const existingIds = await getExistingTaskIds(project.toUpperCase());
+	const projectPrefix = project.toUpperCase();
+
+	let nextNum = 1;
+	while (existingIds.has(`${projectPrefix}-${String(nextNum).padStart(3, '0')}`)) {
+		nextNum++;
+	}
+	const taskId = `${projectPrefix}-${String(nextNum).padStart(3, '0')}`;
+
+	// Read or create BACKLOG.md
+	let backlogContent;
+	if (await fileExists(BACKLOG_FILE)) {
+		backlogContent = await readFile(BACKLOG_FILE, 'utf-8');
+	} else {
+		backlogContent = `---
+title: Backlog
+created: ${getISODate()}
+updated: ${getISODate()}
+---
+
+# Backlog
+
+**Last Updated:** ${getCurrentDate()}
+
+## Queue
+
+### P0 - Critical
+
+### P1 - High Priority
+
+### P2 - Medium Priority
+
+### P3 - Low Priority
+
+---
+*Use \`promote_task\` to move items to active work*
+`;
+	}
+
+	// Build task entry
+	const tagsStr = tags.length > 0 ? ` [${tags.join(', ')}]` : '';
+	const phaseStr = phase ? ` (${phase})` : '';
+	let taskEntry = `- [ ] **${taskId}**: ${title}${tagsStr}${phaseStr}\n`;
+	for (const sub of subtasks) {
+		taskEntry += `  - ${sub}\n`;
+	}
+
+	// Find priority section and insert
+	const sectionHeader =
+		priority === 'P0'
+			? '### P0 - Critical'
+			: priority === 'P1'
+				? '### P1 - High Priority'
+				: priority === 'P2'
+					? '### P2 - Medium Priority'
+					: '### P3 - Low Priority';
+
+	if (backlogContent.includes(sectionHeader)) {
+		backlogContent = backlogContent.replace(
+			new RegExp(`(${sectionHeader.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n)`, 'g'),
+			`$1${taskEntry}\n`
+		);
+	}
+
+	// Update timestamp
+	backlogContent = backlogContent.replace(
+		/\*\*Last Updated:\*\* .*/,
+		`**Last Updated:** ${getCurrentDate()}`
+	);
+	backlogContent = backlogContent.replace(/updated: .*/, `updated: ${getISODate()}`);
+
+	await writeFile(BACKLOG_FILE, backlogContent, 'utf-8');
+
+	let result = `## Added to Backlog: ${taskId}\n\n`;
+	result += `**Title:** ${title}\n`;
+	result += `**Priority:** ${priority}\n`;
+	result += `**Project:** ${projectPrefix}\n`;
+	if (tags.length > 0) result += `**Tags:** ${tags.join(', ')}\n`;
+	if (phase) result += `**Phase:** ${phase}\n`;
+	if (subtasks.length > 0) result += `**Subtasks:** ${subtasks.length}\n`;
+	result += `\n✅ Item added to BACKLOG.md. Use \`promote_task\` when ready to start work.`;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
+ * Get backlog contents handler
+ */
+async function getBacklog(args) {
+	const { priority, project, include_promoted = false } = args || {};
+
+	if (!(await fileExists(BACKLOG_FILE))) {
+		return {
+			content: [
+				{
+					type: 'text',
+					text: `⚠️ BACKLOG.md not found. Use \`init_project\` or \`add_to_backlog\` to create it.`,
+				},
+			],
+		};
+	}
+
+	const backlogContent = await readFile(BACKLOG_FILE, 'utf-8');
+
+	// Parse backlog items
+	const items = [];
+	const itemRegex =
+		/^- \[([ x]|promoted)\] \*\*([A-Z]+-\d+)\*\*:\s*(.+?)(?:\s*\[([^\]]+)\])?(?:\s*\(([^)]+)\))?$/gm;
+	let match;
+
+	while ((match = itemRegex.exec(backlogContent)) !== null) {
+		const status = match[1] === ' ' ? 'pending' : match[1] === 'x' ? 'done' : 'promoted';
+		const id = match[2];
+		const title = match[3].trim();
+		const tags = match[4] ? match[4].split(',').map((t) => t.trim()) : [];
+		const phase = match[5] || null;
+
+		// Detect priority from section
+		let itemPriority = 'P2';
+		const beforeItem = backlogContent.substring(0, match.index);
+		if (beforeItem.lastIndexOf('### P0') > beforeItem.lastIndexOf('### P1')) itemPriority = 'P0';
+		else if (beforeItem.lastIndexOf('### P1') > beforeItem.lastIndexOf('### P2')) itemPriority = 'P1';
+		else if (beforeItem.lastIndexOf('### P2') > beforeItem.lastIndexOf('### P3')) itemPriority = 'P2';
+		else if (beforeItem.includes('### P3')) itemPriority = 'P3';
+
+		items.push({ id, title, status, priority: itemPriority, tags, phase });
+	}
+
+	// Apply filters
+	let filtered = items;
+	if (!include_promoted) {
+		filtered = filtered.filter((i) => i.status !== 'promoted');
+	}
+	if (priority) {
+		filtered = filtered.filter((i) => i.priority === priority);
+	}
+	if (project) {
+		filtered = filtered.filter((i) => i.id.startsWith(project.toUpperCase()));
+	}
+
+	// Group by priority
+	const byPriority = { P0: [], P1: [], P2: [], P3: [] };
+	for (const item of filtered) {
+		byPriority[item.priority] = byPriority[item.priority] || [];
+		byPriority[item.priority].push(item);
+	}
+
+	let result = `## Backlog\n\n`;
+	result += `**Total:** ${filtered.length} items`;
+	if (priority) result += ` (filtered by ${priority})`;
+	if (project) result += ` (filtered by ${project.toUpperCase()})`;
+	result += `\n\n`;
+
+	for (const pri of ['P0', 'P1', 'P2', 'P3']) {
+		if (byPriority[pri].length > 0) {
+			result += `### ${pri} (${byPriority[pri].length})\n\n`;
+			for (const item of byPriority[pri]) {
+				const statusIcon = item.status === 'promoted' ? '✅' : '⬜';
+				result += `${statusIcon} **${item.id}**: ${item.title}`;
+				if (item.tags.length > 0) result += ` [${item.tags.join(', ')}]`;
+				if (item.phase) result += ` (${item.phase})`;
+				result += '\n';
+			}
+			result += '\n';
+		}
+	}
+
+	if (filtered.length === 0) {
+		result += `*No items in backlog${priority ? ` at priority ${priority}` : ''}.*\n`;
+	}
+
+	result += `---\n**Tools:** \`add_to_backlog\` | \`promote_task\` | \`update_backlog_item\` | \`remove_from_backlog\``;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
+ * Update backlog item handler
+ */
+async function updateBacklogItem(args) {
+	const { task_id, title, priority, tags, phase } = args;
+
+	if (!(await fileExists(BACKLOG_FILE))) {
+		return {
+			content: [{ type: 'text', text: `❌ BACKLOG.md not found.` }],
+			isError: true,
+		};
+	}
+
+	const id = task_id.toUpperCase();
+	let backlog = await readFile(BACKLOG_FILE, 'utf-8');
+
+	// Find the task line
+	const taskRegex = new RegExp(
+		`^(- \\[[ x]\\] \\*\\*${id}\\*\\*:)\\s*(.+?)(?:\\s*\\[([^\\]]+)\\])?(?:\\s*\\(([^)]+)\\))?$`,
+		'm'
+	);
+	const match = backlog.match(taskRegex);
+
+	if (!match) {
+		return {
+			content: [{ type: 'text', text: `❌ Task ${id} not found in BACKLOG.md` }],
+			isError: true,
+		};
+	}
+
+	const currentTitle = match[2].trim();
+	const currentTags = match[3] ? match[3].split(',').map((t) => t.trim()) : [];
+	const currentPhase = match[4] || null;
+
+	// Build new entry
+	const newTitle = title || currentTitle;
+	const newTags = tags !== undefined ? tags : currentTags;
+	const newPhase = phase !== undefined ? phase : currentPhase;
+
+	const tagsStr = newTags.length > 0 ? ` [${newTags.join(', ')}]` : '';
+	const phaseStr = newPhase ? ` (${newPhase})` : '';
+	const newEntry = `- [ ] **${id}**: ${newTitle}${tagsStr}${phaseStr}`;
+
+	const changes = [];
+	if (title) changes.push(`title → "${title}"`);
+	if (tags !== undefined) changes.push(`tags → [${newTags.join(', ')}]`);
+	if (phase !== undefined) changes.push(`phase → ${newPhase || '(none)'}`);
+
+	// If priority changed, need to move to new section
+	if (priority) {
+		// Remove from current location
+		backlog = backlog.replace(taskRegex, '');
+		// Clean up empty lines
+		backlog = backlog.replace(/\n{3,}/g, '\n\n');
+
+		// Insert into new priority section
+		const sectionHeader =
+			priority === 'P0'
+				? '### P0 - Critical'
+				: priority === 'P1'
+					? '### P1 - High Priority'
+					: priority === 'P2'
+						? '### P2 - Medium Priority'
+						: '### P3 - Low Priority';
+
+		if (backlog.includes(sectionHeader)) {
+			backlog = backlog.replace(
+				new RegExp(`(${sectionHeader.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n)`, 'g'),
+				`$1${newEntry}\n`
+			);
+		}
+		changes.push(`priority → ${priority}`);
+	} else {
+		// Just update in place
+		backlog = backlog.replace(taskRegex, newEntry);
+	}
+
+	// Update timestamp
+	backlog = backlog.replace(/\*\*Last Updated:\*\* .*/, `**Last Updated:** ${getCurrentDate()}`);
+	backlog = backlog.replace(/updated: .*/, `updated: ${getISODate()}`);
+
+	await writeFile(BACKLOG_FILE, backlog, 'utf-8');
+
+	let result = `## Updated Backlog Item: ${id}\n\n`;
+	result += `**Changes:**\n${changes.map((c) => `- ${c}`).join('\n')}\n\n`;
+	result += `✅ BACKLOG.md updated.`;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
+ * Remove from backlog handler
+ */
+async function removeFromBacklog(args) {
+	const { task_id, reason } = args;
+
+	if (!(await fileExists(BACKLOG_FILE))) {
+		return {
+			content: [{ type: 'text', text: `❌ BACKLOG.md not found.` }],
+			isError: true,
+		};
+	}
+
+	const id = task_id.toUpperCase();
+	let backlog = await readFile(BACKLOG_FILE, 'utf-8');
+
+	// Find and capture the task line (including any subtasks)
+	const taskRegex = new RegExp(`^- \\[[ x]\\] \\*\\*${id}\\*\\*:\\s*.+$(?:\\n  - .+$)*`, 'm');
+	const match = backlog.match(taskRegex);
+
+	if (!match) {
+		return {
+			content: [{ type: 'text', text: `❌ Task ${id} not found in BACKLOG.md` }],
+			isError: true,
+		};
+	}
+
+	const removedEntry = match[0];
+
+	// Remove the task
+	backlog = backlog.replace(taskRegex, '');
+	// Clean up empty lines
+	backlog = backlog.replace(/\n{3,}/g, '\n\n');
+
+	// Update timestamp
+	backlog = backlog.replace(/\*\*Last Updated:\*\* .*/, `**Last Updated:** ${getCurrentDate()}`);
+	backlog = backlog.replace(/updated: .*/, `updated: ${getISODate()}`);
+
+	await writeFile(BACKLOG_FILE, backlog, 'utf-8');
+
+	let result = `## Removed from Backlog: ${id}\n\n`;
+	result += `**Removed:**\n\`\`\`\n${removedEntry}\n\`\`\`\n`;
+	if (reason) result += `**Reason:** ${reason}\n`;
+	result += `\n✅ Item removed from BACKLOG.md.`;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
  * Handler map
  */
 export const handlers = {
 	import_tasks: importTasks,
 	promote_task: promoteTask,
 	archive_task: archiveTask,
+	add_to_backlog: addToBacklog,
+	get_backlog: getBacklog,
+	update_backlog_item: updateBacklogItem,
+	remove_from_backlog: removeFromBacklog,
 };

@@ -6,6 +6,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2024-12-29
+
+### Added
+
+**10 New Tools (22 → 32 total)**
+
+Backlog Operations:
+
+- `add_to_backlog` - Add single item to BACKLOG.md
+- `get_backlog` - Read backlog with filtering/sorting
+- `update_backlog_item` - Update priority, title, tags, phase
+- `remove_from_backlog` - Delete item without promoting
+
+Task Operations:
+
+- `get_task` - Read a specific task by ID with full details
+- `delete_task` - Permanently remove a task (with confirmation)
+
+Decision Tracking:
+
+- `add_decision` - Record ADR with structured format
+- `list_decisions` - List/filter architecture decisions
+
+Status/Roadmap:
+
+- `update_project_status` - Quick timestamped status update
+- `add_roadmap_milestone` - Add milestone with deliverables
+
+**4 New Prompts (8 → 12 total)**
+
+- `add_to_backlog` - "add to backlog", "queue this task"
+- `get_backlog` - "show backlog", "what's in the queue"
+- `add_decision` - "record decision", "ADR"
+- `update_status` - "update status", "project status"
+
+### Changed
+
+- Prompt naming standardized to snake_case (breaking if using old names)
+- Updated `promptToolMapping` with new tool references
+- Improved test coverage for new tools
+
 ## [2.0.0] - 2024-12-29
 
 ### Breaking Changes
@@ -36,7 +77,8 @@ and this project adheres to
 ### Removed
 
 - Legacy monolithic `index.js` (replaced by modular `src/` structure)
-- Redundant documentation files (PRE_PUBLISH_CHECKLIST.md, PUBLISHING.md, REPOSITORY_IMPROVEMENTS.md)
+- Redundant documentation files (PRE_PUBLISH_CHECKLIST.md, PUBLISHING.md,
+  REPOSITORY_IMPROVEMENTS.md)
 
 ## [1.4.2] - 2024-12-29
 
@@ -57,7 +99,8 @@ and this project adheres to
 
 ### Added
 
-- Modular architecture: break monolithic code into `src/lib/`, `src/tools/`, `src/prompts/`, `src/resources/`
+- Modular architecture: break monolithic code into `src/lib/`, `src/tools/`,
+  `src/prompts/`, `src/resources/`
 - ToolSDK registry config (`toolsdk-registry.json`) for discoverability
 - Entry point moved to `src/index.js` (15 lines vs 4019)
 

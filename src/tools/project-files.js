@@ -1,6 +1,7 @@
 /**
  * Project file management tools.
- * Handles: manage_project_file, check_project_state, create_or_update_* tools
+ * Handles: manage_project_file, check_project_state, create_or_update_* tools,
+ * add_decision, list_decisions, update_project_status, add_roadmap_milestone
  */
 
 import { PROJECT_DIR, TODO_SECTIONS } from '../lib/constants.js';
@@ -183,6 +184,131 @@ export const definitions = [
 				},
 			},
 			required: ['content'],
+		},
+	},
+	{
+		name: 'add_decision',
+		description:
+			'Adds a single architecture decision record (ADR) to DECISIONS.md. Creates a structured entry with title, context, decision, and consequences sections.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				title: {
+					type: 'string',
+					description: 'Title of the decision (e.g., "Use PostgreSQL for primary database").',
+				},
+				context: {
+					type: 'string',
+					description: 'The context and problem statement that led to this decision.',
+				},
+				decision: {
+					type: 'string',
+					description: 'The decision that was made.',
+				},
+				consequences: {
+					type: 'string',
+					description: 'The positive and negative consequences of the decision.',
+				},
+				status: {
+					type: 'string',
+					description: 'Status of the decision. Default: "accepted".',
+					enum: ['proposed', 'accepted', 'deprecated', 'superseded'],
+					default: 'accepted',
+				},
+				tags: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'Tags for categorization (e.g., ["database", "infrastructure"]).',
+				},
+			},
+			required: ['title', 'decision'],
+		},
+	},
+	{
+		name: 'list_decisions',
+		description:
+			'Lists all architecture decisions from DECISIONS.md with optional filtering by status or tag.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				status: {
+					type: 'string',
+					description: 'Filter by status.',
+					enum: ['proposed', 'accepted', 'deprecated', 'superseded', ''],
+				},
+				tag: {
+					type: 'string',
+					description: 'Filter by tag.',
+				},
+			},
+		},
+	},
+	{
+		name: 'update_project_status',
+		description:
+			'Quick status update for the project. Adds a timestamped entry to STATUS.md with the current status, changes, or notes.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				status: {
+					type: 'string',
+					description: 'Current status summary (e.g., "On track", "Blocked by API issues").',
+				},
+				health: {
+					type: 'string',
+					description: 'Project health indicator.',
+					enum: ['green', 'yellow', 'red'],
+				},
+				changes: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'List of recent changes or updates.',
+				},
+				blockers: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'Current blockers or risks.',
+				},
+				next_milestone: {
+					type: 'string',
+					description: 'Next milestone or goal.',
+				},
+			},
+			required: ['status'],
+		},
+	},
+	{
+		name: 'add_roadmap_milestone',
+		description:
+			'Adds a milestone or phase to ROADMAP.md. Creates a structured entry with title, description, target date, and deliverables.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				title: {
+					type: 'string',
+					description: 'Milestone title (e.g., "v1.0 Release", "Q1 2025").',
+				},
+				description: {
+					type: 'string',
+					description: 'Description of the milestone.',
+				},
+				target_date: {
+					type: 'string',
+					description: 'Target date (e.g., "2025-03-01", "Q1 2025").',
+				},
+				deliverables: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'List of deliverables for this milestone.',
+				},
+				status: {
+					type: 'string',
+					description: 'Status of the milestone. Default: "planned".',
+					enum: ['planned', 'in_progress', 'completed', 'delayed'],
+					default: 'planned',
+				},
+			},
+			required: ['title'],
 		},
 	},
 ];
@@ -674,6 +800,295 @@ ${content}
 }
 
 /**
+ * Add decision handler
+ */
+async function addDecision(args) {
+	const { title, context, decision, consequences, status = 'accepted', tags = [] } = args;
+	await ensureProjectDir();
+
+	const decisionsPath = join(PROJECT_DIR, 'DECISIONS.md');
+	const exists = await fileExists(decisionsPath);
+
+	// Generate decision ID based on existing decisions
+	let decisionNum = 1;
+	let existingContent = '';
+	if (exists) {
+		existingContent = await readFile(decisionsPath, 'utf-8');
+		const matches = existingContent.match(/## ADR-(\d+)/g) || [];
+		if (matches.length > 0) {
+			const nums = matches.map((m) => parseInt(m.replace('## ADR-', '')));
+			decisionNum = Math.max(...nums) + 1;
+		}
+	}
+
+	const decisionId = `ADR-${String(decisionNum).padStart(3, '0')}`;
+	const tagsStr = tags.length > 0 ? `\n**Tags:** ${tags.join(', ')}` : '';
+
+	const entry = `## ${decisionId}: ${title}
+
+**Date:** ${getCurrentDate()}
+**Status:** ${status}${tagsStr}
+
+### Context
+
+${context || 'No context provided.'}
+
+### Decision
+
+${decision}
+
+### Consequences
+
+${consequences || 'Not documented.'}
+
+`;
+
+	if (!exists) {
+		const decisionsContent = `# Architecture Decisions
+
+This document records architecture decisions, trade-offs, and rationale for this project.
+
+${entry}
+---
+*Last Updated: ${getCurrentDate()}*
+`;
+		await writeFile(decisionsPath, decisionsContent, 'utf-8');
+	} else {
+		// Insert before the footer
+		let updatedContent = existingContent;
+		if (updatedContent.includes('---\n*Last Updated:')) {
+			updatedContent = updatedContent.replace(
+				/---\n\*Last Updated:.*\*/,
+				`${entry}---\n*Last Updated: ${getCurrentDate()}*`
+			);
+		} else {
+			updatedContent = `${updatedContent}\n${entry}\n---\n*Last Updated: ${getCurrentDate()}*\n`;
+		}
+		await writeFile(decisionsPath, updatedContent, 'utf-8');
+	}
+
+	let result = `## Decision Recorded: ${decisionId}\n\n`;
+	result += `**Title:** ${title}\n`;
+	result += `**Status:** ${status}\n`;
+	if (tags.length > 0) result += `**Tags:** ${tags.join(', ')}\n`;
+	result += `\n✅ Added to DECISIONS.md`;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
+ * List decisions handler
+ */
+async function listDecisions(args) {
+	const { status, tag } = args || {};
+	await ensureProjectDir();
+
+	const decisionsPath = join(PROJECT_DIR, 'DECISIONS.md');
+	if (!(await fileExists(decisionsPath))) {
+		return {
+			content: [
+				{
+					type: 'text',
+					text: `⚠️ DECISIONS.md not found. Use \`add_decision\` to create your first decision record.`,
+				},
+			],
+		};
+	}
+
+	const content = await readFile(decisionsPath, 'utf-8');
+
+	// Parse decisions
+	const decisions = [];
+	const decisionRegex =
+		/## (ADR-\d+): ([^\n]+)\n\n\*\*Date:\*\* ([^\n]+)\n\*\*Status:\*\* ([^\n]+)(?:\n\*\*Tags:\*\* ([^\n]+))?/g;
+	let match;
+
+	while ((match = decisionRegex.exec(content)) !== null) {
+		decisions.push({
+			id: match[1],
+			title: match[2],
+			date: match[3],
+			status: match[4].toLowerCase(),
+			tags: match[5] ? match[5].split(',').map((t) => t.trim().toLowerCase()) : [],
+		});
+	}
+
+	// Apply filters
+	let filtered = decisions;
+	if (status) {
+		filtered = filtered.filter((d) => d.status === status.toLowerCase());
+	}
+	if (tag) {
+		filtered = filtered.filter((d) => d.tags.includes(tag.toLowerCase()));
+	}
+
+	let result = `## Architecture Decisions\n\n`;
+	result += `**Total:** ${filtered.length} decision(s)`;
+	if (status) result += ` (filtered by status: ${status})`;
+	if (tag) result += ` (filtered by tag: ${tag})`;
+	result += `\n\n`;
+
+	if (filtered.length === 0) {
+		result += `*No decisions found${status || tag ? ' with the specified filters' : ''}.*\n`;
+	} else {
+		result += `| ID | Title | Status | Date |\n`;
+		result += `|----|-------|--------|------|\n`;
+		for (const d of filtered) {
+			result += `| ${d.id} | ${d.title.substring(0, 40)}${d.title.length > 40 ? '...' : ''} | ${d.status} | ${d.date} |\n`;
+		}
+	}
+
+	result += `\n---\n**Tools:** \`add_decision\` | \`create_or_update_decisions\``;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
+ * Update project status handler
+ */
+async function updateProjectStatus(args) {
+	const { status, health, changes = [], blockers = [], next_milestone } = args;
+	await ensureProjectDir();
+
+	const statusPath = join(PROJECT_DIR, 'STATUS.md');
+	const exists = await fileExists(statusPath);
+
+	const healthEmoji =
+		health === 'green' ? '🟢' : health === 'yellow' ? '🟡' : health === 'red' ? '🔴' : '⚪';
+	const healthText = health ? `${healthEmoji} **${health.toUpperCase()}**` : '';
+
+	const statusEntry = `### Status Update - ${getCurrentDate()}
+
+**Status:** ${status}
+${healthText ? `**Health:** ${healthText}\n` : ''}${changes.length > 0 ? `**Recent Changes:**\n${changes.map((c) => `- ${c}`).join('\n')}\n` : ''}${blockers.length > 0 ? `**Blockers:**\n${blockers.map((b) => `- ⚠️ ${b}`).join('\n')}\n` : ''}${next_milestone ? `**Next Milestone:** ${next_milestone}\n` : ''}
+`;
+
+	if (!exists) {
+		const statusContent = `# Project Status
+
+**Last Updated:** ${getCurrentDate()}
+
+## Current Status
+
+${statusEntry}
+
+## Status History
+
+---
+*Last Updated: ${getCurrentDate()}*
+`;
+		await writeFile(statusPath, statusContent, 'utf-8');
+	} else {
+		let existingContent = await readFile(statusPath, 'utf-8');
+
+		// Update the "Last Updated" timestamp
+		existingContent = existingContent.replace(
+			/\*\*Last Updated:\*\* .*/,
+			`**Last Updated:** ${getCurrentDate()}`
+		);
+
+		// Insert new status entry after "## Current Status" or "## Status History"
+		if (existingContent.includes('## Status History')) {
+			existingContent = existingContent.replace(/(## Status History\n)/, `$1\n${statusEntry}`);
+		} else if (existingContent.includes('## Current Status')) {
+			existingContent = existingContent.replace(/(## Current Status\n)/, `$1\n${statusEntry}`);
+		} else {
+			existingContent = `${existingContent}\n\n## Status Updates\n\n${statusEntry}`;
+		}
+
+		existingContent = existingContent.replace(
+			/\*Last Updated: .*\*/,
+			`*Last Updated: ${getCurrentDate()}*`
+		);
+
+		await writeFile(statusPath, existingContent, 'utf-8');
+	}
+
+	let result = `## Status Updated\n\n`;
+	result += `**Status:** ${status}\n`;
+	if (health) result += `**Health:** ${healthEmoji} ${health}\n`;
+	if (changes.length > 0) result += `**Changes:** ${changes.length} items\n`;
+	if (blockers.length > 0) result += `**Blockers:** ${blockers.length} items\n`;
+	if (next_milestone) result += `**Next Milestone:** ${next_milestone}\n`;
+	result += `\n✅ STATUS.md updated`;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
+ * Add roadmap milestone handler
+ */
+async function addRoadmapMilestone(args) {
+	const { title, description, target_date, deliverables = [], status = 'planned' } = args;
+	await ensureProjectDir();
+
+	const roadmapPath = join(PROJECT_DIR, 'ROADMAP.md');
+	const exists = await fileExists(roadmapPath);
+
+	const statusEmoji =
+		status === 'completed'
+			? '✅'
+			: status === 'in_progress'
+				? '🔵'
+				: status === 'delayed'
+					? '🔴'
+					: '⬜';
+
+	let milestoneEntry = `## ${statusEmoji} ${title}\n\n`;
+	if (target_date) milestoneEntry += `**Target:** ${target_date}\n`;
+	milestoneEntry += `**Status:** ${status}\n\n`;
+	if (description) milestoneEntry += `${description}\n\n`;
+	if (deliverables.length > 0) {
+		milestoneEntry += `### Deliverables\n\n`;
+		for (const d of deliverables) {
+			milestoneEntry += `- [ ] ${d}\n`;
+		}
+		milestoneEntry += '\n';
+	}
+
+	if (!exists) {
+		const roadmapContent = `# Project Roadmap
+
+${milestoneEntry}
+
+---
+*Last Updated: ${getCurrentDate()}*
+`;
+		await writeFile(roadmapPath, roadmapContent, 'utf-8');
+	} else {
+		let existingContent = await readFile(roadmapPath, 'utf-8');
+
+		// Insert before the footer
+		if (existingContent.includes('---\n*Last Updated:')) {
+			existingContent = existingContent.replace(
+				/---\n\*Last Updated:.*\*/,
+				`${milestoneEntry}\n---\n*Last Updated: ${getCurrentDate()}*`
+			);
+		} else {
+			existingContent = `${existingContent}\n\n${milestoneEntry}\n---\n*Last Updated: ${getCurrentDate()}*\n`;
+		}
+
+		await writeFile(roadmapPath, existingContent, 'utf-8');
+	}
+
+	let result = `## Milestone Added: ${title}\n\n`;
+	result += `**Status:** ${statusEmoji} ${status}\n`;
+	if (target_date) result += `**Target:** ${target_date}\n`;
+	if (deliverables.length > 0) result += `**Deliverables:** ${deliverables.length} items\n`;
+	result += `\n✅ Added to ROADMAP.md`;
+
+	return {
+		content: [{ type: 'text', text: result }],
+	};
+}
+
+/**
  * Smart manage project file handler
  */
 async function manageProjectFile(args) {
@@ -747,4 +1162,8 @@ export const handlers = {
 	create_or_update_status: createOrUpdateStatus,
 	create_or_update_index: createOrUpdateIndex,
 	create_or_update_decisions: createOrUpdateDecisions,
+	add_decision: addDecision,
+	list_decisions: listDecisions,
+	update_project_status: updateProjectStatus,
+	add_roadmap_milestone: addRoadmapMilestone,
 };

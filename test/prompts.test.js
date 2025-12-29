@@ -11,7 +11,12 @@
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import { prompts, promptToolMapping, getPromptNames, getToolsForPrompt } from '../src/prompts/definitions.js';
+import {
+	prompts,
+	promptToolMapping,
+	getPromptNames,
+	getToolsForPrompt,
+} from '../src/prompts/definitions.js';
 import { getMessageHandlerKeys } from '../src/prompts/index.js';
 import { definitions as toolDefinitions, hasHandler } from '../src/tools/index.js';
 
@@ -182,10 +187,7 @@ describe('Tool definitions completeness', () => {
 	test('all tools have unique names', () => {
 		const names = new Set();
 		for (const tool of toolDefinitions) {
-			assert.ok(
-				!names.has(tool.name),
-				`Duplicate tool name: "${tool.name}"`
-			);
+			assert.ok(!names.has(tool.name), `Duplicate tool name: "${tool.name}"`);
 			names.add(tool.name);
 		}
 	});
@@ -201,10 +203,7 @@ describe('Tool definitions completeness', () => {
 
 	test('all tools have handlers', () => {
 		for (const tool of toolDefinitions) {
-			assert.ok(
-				hasHandler(tool.name),
-				`Tool "${tool.name}" is defined but has no handler`
-			);
+			assert.ok(hasHandler(tool.name), `Tool "${tool.name}" is defined but has no handler`);
 		}
 	});
 
@@ -212,20 +211,14 @@ describe('Tool definitions completeness', () => {
 		const snakeCaseRegex = /^[a-z][a-z0-9]*(_[a-z0-9]+)*$/;
 
 		for (const tool of toolDefinitions) {
-			assert.ok(
-				snakeCaseRegex.test(tool.name),
-				`Tool "${tool.name}" should use snake_case`
-			);
+			assert.ok(snakeCaseRegex.test(tool.name), `Tool "${tool.name}" should use snake_case`);
 		}
 	});
 });
 
 describe('Integration sanity checks', () => {
 	test('expected number of prompts exist', () => {
-		assert.ok(
-			prompts.length >= 8,
-			`Expected at least 8 prompts, got ${prompts.length}`
-		);
+		assert.ok(prompts.length >= 8, `Expected at least 8 prompts, got ${prompts.length}`);
 	});
 
 	test('expected number of tools exist', () => {
@@ -247,10 +240,7 @@ describe('Integration sanity checks', () => {
 
 		const promptNames = getPromptNames();
 		for (const core of corePrompts) {
-			assert.ok(
-				promptNames.includes(core),
-				`Core prompt "${core}" is missing`
-			);
+			assert.ok(promptNames.includes(core), `Core prompt "${core}" is missing`);
 		}
 	});
 
@@ -267,11 +257,7 @@ describe('Integration sanity checks', () => {
 		];
 
 		for (const core of coreTools) {
-			assert.ok(
-				allToolNames.includes(core),
-				`Core tool "${core}" is missing`
-			);
+			assert.ok(allToolNames.includes(core), `Core tool "${core}" is missing`);
 		}
 	});
 });
-

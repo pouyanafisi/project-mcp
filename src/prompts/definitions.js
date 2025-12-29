@@ -12,7 +12,7 @@
  * @type {Record<string, string[]>}
  */
 export const promptToolMapping = {
-	project_overview: ['check_project_state', 'search_project', 'list_tasks'],
+	project_overview: ['check_project_state', 'search_project', 'list_tasks', 'get_backlog'],
 	get_next_task: ['get_next_task'],
 	init_project: ['init_project'],
 	import_tasks: ['import_tasks'],
@@ -20,6 +20,10 @@ export const promptToolMapping = {
 	lint_project: ['lint_project_docs'],
 	list_tasks: ['list_tasks'],
 	update_task: ['update_task'],
+	add_to_backlog: ['add_to_backlog'],
+	get_backlog: ['get_backlog'],
+	add_decision: ['add_decision'],
+	update_status: ['update_project_status'],
 };
 
 /**
@@ -129,6 +133,74 @@ export const prompts = [
 				name: 'new_status',
 				description: 'New status (todo, in_progress, blocked, review, done)',
 				required: true,
+			},
+		],
+	},
+	{
+		name: 'add_to_backlog',
+		description:
+			'Add a single item to the backlog. Use when user says "add to backlog", "queue this task", "backlog item", or "add future task".',
+		arguments: [
+			{
+				name: 'title',
+				description: 'Title/description of the backlog item',
+				required: true,
+			},
+			{
+				name: 'project',
+				description: 'Project prefix (e.g., AUTH, API)',
+				required: true,
+			},
+			{
+				name: 'priority',
+				description: 'Priority level (P0, P1, P2, P3)',
+				required: false,
+			},
+		],
+	},
+	{
+		name: 'get_backlog',
+		description:
+			'View the current backlog. Use when user asks "show backlog", "what\'s in the queue", "backlog items", or "pending tasks".',
+		arguments: [
+			{
+				name: 'priority',
+				description: 'Filter by priority (P0, P1, P2, P3)',
+				required: false,
+			},
+		],
+	},
+	{
+		name: 'add_decision',
+		description:
+			'Record an architecture decision. Use when user says "record decision", "document decision", "ADR", or "architecture decision".',
+		arguments: [
+			{
+				name: 'title',
+				description: 'Title of the decision',
+				required: true,
+			},
+			{
+				name: 'decision',
+				description: 'The decision that was made',
+				required: true,
+			},
+		],
+	},
+	{
+		name: 'update_status',
+		description:
+			'Update project status. Use when user says "update status", "project status", "status update", or "how\'s the project".',
+		arguments: [
+			{
+				name: 'status',
+				description: 'Current status summary',
+				required: true,
+			},
+			{
+				name: 'health',
+				description: 'Project health (green, yellow, red)',
+				required: false,
 			},
 		],
 	},

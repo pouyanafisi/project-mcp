@@ -4,7 +4,10 @@
 
 ## 🎉 Major Version Release
 
-This is a major release that introduces a complete architectural refactor, moving from a monolithic codebase to a clean, modular structure. This release significantly improves maintainability, developer experience, and sets the foundation for future growth.
+This is a major release that introduces a complete architectural refactor,
+moving from a monolithic codebase to a clean, modular structure. This release
+significantly improves maintainability, developer experience, and sets the
+foundation for future growth.
 
 ## ⚠️ Breaking Changes
 
@@ -13,20 +16,23 @@ This is a major release that introduces a complete architectural refactor, movin
 The entry point has moved from `index.js` to `src/index.js`:
 
 **Before:**
+
 ```json
 {
-  "main": "index.js"
+	"main": "index.js"
 }
 ```
 
 **After:**
+
 ```json
 {
-  "main": "src/index.js"
+	"main": "src/index.js"
 }
 ```
 
 **Action Required:**
+
 - Update MCP server configurations to use `src/index.js`
 - The old monolithic `index.js` has been completely removed
 
@@ -60,6 +66,7 @@ src/
 ```
 
 **Benefits:**
+
 - **Maintainability**: Each module has a single responsibility
 - **Testability**: Easier to test individual components
 - **Scalability**: Simple to add new tools or features
@@ -67,9 +74,12 @@ src/
 
 ### Code Quality Improvements
 
-- **Prettier Integration**: Consistent code formatting across the entire codebase
-- **Format Scripts**: `npm run format` and `npm run format:check` for easy formatting
-- **37 files formatted**: All JavaScript, Markdown, and JSON files now follow consistent style
+- **Prettier Integration**: Consistent code formatting across the entire
+  codebase
+- **Format Scripts**: `npm run format` and `npm run format:check` for easy
+  formatting
+- **37 files formatted**: All JavaScript, Markdown, and JSON files now follow
+  consistent style
 
 ### ToolSDK Registry Support
 
@@ -95,14 +105,15 @@ src/
 ### For MCP Server Users
 
 1. **Update your MCP configuration:**
+
    ```json
    {
-     "mcpServers": {
-       "project-mcp": {
-         "command": "node",
-         "args": ["path/to/project-mcp/src/index.js"]
-       }
-     }
+   	"mcpServers": {
+   		"project-mcp": {
+   			"command": "node",
+   			"args": ["path/to/project-mcp/src/index.js"]
+   		}
+   	}
    }
    ```
 
@@ -118,6 +129,7 @@ src/
 ## 🚀 What's Next
 
 This release sets the foundation for:
+
 - Easier feature additions
 - Better testing infrastructure
 - Improved documentation
@@ -129,11 +141,11 @@ See [CHANGELOG.md](../../CHANGELOG.md) for detailed changes.
 
 ## 🙏 Thank You
 
-Thank you for using `project-mcp`! This major refactor was done to improve the long-term maintainability and developer experience of the project.
+Thank you for using `project-mcp`! This major refactor was done to improve the
+long-term maintainability and developer experience of the project.
 
 ---
 
 **Upgrade Path:** `npm install project-mcp@2.0.0`
 
 **Documentation:** [README.md](../../README.md)
-

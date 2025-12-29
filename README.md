@@ -17,43 +17,43 @@ not just directory names.
 ## Table of Contents
 
 - [project-mcp](#project-mcp)
-	- [Table of Contents](#table-of-contents)
-	- [⚡ Quick Start](#-quick-start)
-		- [Install](#install)
-		- [Configure](#configure)
-	- [🎯 Why project-mcp?](#-why-project-mcp)
-	- [🛠️ Available Tools](#️-available-tools)
-		- [Search Tools](#search-tools)
-		- [Project Management Tools](#project-management-tools)
-		- [Task Management Tools](#task-management-tools)
-		- [Quality Tools](#quality-tools)
-	- [📋 Task Management System](#-task-management-system)
-		- [Workflow](#workflow)
-		- [Task File Format (Active Tasks)](#task-file-format-active-tasks)
-		- [Agent Execution Loop](#agent-execution-loop)
-		- [Key Features](#key-features)
-	- [🏗️ Project Structure Guide](#️-project-structure-guide)
-		- [Recommended Directory Structure](#recommended-directory-structure)
-		- [What Goes Where?](#what-goes-where)
-			- [`.project/` — Operational Truth](#project--operational-truth)
-			- [`docs/` — Reference Truth](#docs--reference-truth)
-	- [🎨 Intent Mapping](#-intent-mapping)
-		- [How It Works](#how-it-works)
-	- [📝 Documentation Examples](#-documentation-examples)
-		- [Example: `.project/index.md` (Contract File)](#example-projectindexmd-contract-file)
-		- [Example: Task Creation](#example-task-creation)
-		- [Example: Getting Next Task](#example-getting-next-task)
-		- [Example: Initialize Project](#example-initialize-project)
-		- [Example: Import Tasks to Backlog](#example-import-tasks-to-backlog)
-		- [Example: Promote Task to Active Work](#example-promote-task-to-active-work)
-		- [Example: Archive Completed Task](#example-archive-completed-task)
-	- [⚙️ Configuration](#️-configuration)
-		- [Custom Documentation Directory](#custom-documentation-directory)
-		- [Custom Working Directory](#custom-working-directory)
-	- [🧪 Development](#-development)
-	- [📚 Documentation](#-documentation)
-	- [🤝 Contributing](#-contributing)
-	- [📄 License](#-license)
+  - [Table of Contents](#table-of-contents)
+  - [⚡ Quick Start](#-quick-start)
+    - [Install](#install)
+    - [Configure](#configure)
+  - [🎯 Why project-mcp?](#-why-project-mcp)
+  - [🛠️ Available Tools](#️-available-tools)
+    - [Search Tools](#search-tools)
+    - [Project Management Tools](#project-management-tools)
+    - [Task Management Tools](#task-management-tools)
+    - [Quality Tools](#quality-tools)
+  - [📋 Task Management System](#-task-management-system)
+    - [Workflow](#workflow)
+    - [Task File Format (Active Tasks)](#task-file-format-active-tasks)
+    - [Agent Execution Loop](#agent-execution-loop)
+    - [Key Features](#key-features)
+  - [🏗️ Project Structure Guide](#️-project-structure-guide)
+    - [Recommended Directory Structure](#recommended-directory-structure)
+    - [What Goes Where?](#what-goes-where)
+      - [`.project/` — Operational Truth](#project--operational-truth)
+      - [`docs/` — Reference Truth](#docs--reference-truth)
+  - [🎨 Intent Mapping](#-intent-mapping)
+    - [How It Works](#how-it-works)
+  - [📝 Documentation Examples](#-documentation-examples)
+    - [Example: `.project/index.md` (Contract File)](#example-projectindexmd-contract-file)
+    - [Example: Task Creation](#example-task-creation)
+    - [Example: Getting Next Task](#example-getting-next-task)
+    - [Example: Initialize Project](#example-initialize-project)
+    - [Example: Import Tasks to Backlog](#example-import-tasks-to-backlog)
+    - [Example: Promote Task to Active Work](#example-promote-task-to-active-work)
+    - [Example: Archive Completed Task](#example-archive-completed-task)
+  - [⚙️ Configuration](#️-configuration)
+    - [Custom Documentation Directory](#custom-documentation-directory)
+    - [Custom Working Directory](#custom-working-directory)
+  - [🧪 Development](#-development)
+  - [📚 Documentation](#-documentation)
+  - [🤝 Contributing](#-contributing)
+  - [📄 License](#-license)
 
 ---
 
@@ -404,7 +404,7 @@ Returns tasks sorted by priority where all dependencies are complete.
 	"arguments": {
 		"project_name": "My App",
 		"project_description": "A web application for task management"
-  }
+	}
 }
 ```
 
@@ -516,7 +516,8 @@ node index.js
 - **[Contributing](CONTRIBUTING.md)** — How to contribute
 - **[Security](SECURITY.md)** — Security policy
 - **[Changelog](CHANGELOG.md)** — Version history
-- **[Release Notes v1.3.0](docs/releases/RELEASE_NOTES_v1.3.0.md)** — Latest release
+- **[Release Notes v1.3.0](docs/releases/RELEASE_NOTES_v1.3.0.md)** — Latest
+  release
 
 ---
 

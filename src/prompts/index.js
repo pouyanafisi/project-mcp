@@ -145,6 +145,67 @@ Valid statuses: todo, in_progress, blocked, review, done`,
 				},
 			},
 		],
+		add_to_backlog: [
+			{
+				role: 'user',
+				content: {
+					type: 'text',
+					text: `Add "${args.title || '[TITLE]'}" to the backlog.
+
+Use the \`add_to_backlog\` tool with:
+- title: "${args.title || '[TITLE]'}"
+- project: "${args.project || '[PROJECT]'}"
+${args.priority ? `- priority: "${args.priority}"` : '- priority: "P2" (default)'}
+
+This adds the item to BACKLOG.md. Use \`promote_task\` when ready to start work.`,
+				},
+			},
+		],
+		get_backlog: [
+			{
+				role: 'user',
+				content: {
+					type: 'text',
+					text: `Show the current backlog${args.priority ? ` filtered by priority ${args.priority}` : ''}.
+
+Use the \`get_backlog\` tool${args.priority ? ` with priority: "${args.priority}"` : ''}.
+
+This shows all items in BACKLOG.md organized by priority.`,
+				},
+			},
+		],
+		add_decision: [
+			{
+				role: 'user',
+				content: {
+					type: 'text',
+					text: `Record an architecture decision: "${args.title || '[TITLE]'}".
+
+Use the \`add_decision\` tool with:
+- title: "${args.title || '[TITLE]'}"
+- decision: "${args.decision || '[DECISION]'}"
+- context: (optional) why this decision was needed
+- consequences: (optional) impact of the decision
+
+This creates an ADR entry in DECISIONS.md.`,
+				},
+			},
+		],
+		update_status: [
+			{
+				role: 'user',
+				content: {
+					type: 'text',
+					text: `Update project status: "${args.status || '[STATUS]'}".
+
+Use the \`update_project_status\` tool with:
+- status: "${args.status || '[STATUS]'}"
+${args.health ? `- health: "${args.health}"` : ''}
+
+This adds a timestamped status entry to STATUS.md.`,
+				},
+			},
+		],
 	};
 
 	return (
@@ -174,6 +235,10 @@ export function getMessageHandlerKeys() {
 		lint_project: true,
 		list_tasks: true,
 		update_task: true,
+		add_to_backlog: true,
+		get_backlog: true,
+		add_decision: true,
+		update_status: true,
 	};
 	return Object.keys(messages);
 }
