@@ -1,0 +1,14 @@
+node_modules/
+*.log
+.DS_Store
+.git/
+.gitignore
+test/
+.github/
+SETUP.md
+PUBLISHING.md
+CONTRIBUTING.md
+SECURITY.md
+CHANGELOG.md
+*.md
+!README.md

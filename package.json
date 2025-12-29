@@ -1,0 +1,54 @@
+{
+	"name": "project-mcp",
+	"version": "1.0.0",
+	"description": "Generic MCP server for searching and accessing project documentation with intent-based search across .project/, root files, and docs/",
+	"type": "module",
+	"main": "index.js",
+	"bin": {
+		"project-mcp": "./index.js"
+	},
+	"scripts": {
+		"start": "node index.js",
+		"test": "node --test test/*.test.js",
+		"lint": "node --check index.js",
+		"prepublishOnly": "npm run lint && npm test"
+	},
+	"keywords": [
+		"mcp",
+		"model-context-protocol",
+		"documentation",
+		"search",
+		"docs",
+		"markdown",
+		"project-documentation",
+		"intent-based-search",
+		"ai-agent",
+		"claude",
+		"cursor"
+	],
+	"author": "",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/yourusername/project-mcp.git"
+	},
+	"bugs": {
+		"url": "https://github.com/yourusername/project-mcp/issues"
+	},
+	"homepage": "https://github.com/yourusername/project-mcp#readme",
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.0.4",
+		"fuse.js": "^7.0.0",
+		"gray-matter": "^4.0.3",
+		"mime-types": "^2.1.35"
+	},
+	"devDependencies": {},
+	"files": [
+		"index.js",
+		"README.md",
+		"LICENSE"
+	]
+}
