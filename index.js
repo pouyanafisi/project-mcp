@@ -579,6 +579,71 @@ class ProjectMCPServer {
 					},
 				},
 				{
+					name: 'init_project',
+					description:
+						'Initializes the .project/ directory with all standard files following strict templates. Creates index.md (contract), TODO.md (dashboard), ROADMAP.md, STATUS.md, DECISIONS.md, and todos/ directory. Use this to bootstrap a new project with proper structure.',
+					inputSchema: {
+						type: 'object',
+						properties: {
+							project_name: {
+								type: 'string',
+								description: 'Name of the project. Used in headers and metadata.',
+							},
+							project_description: {
+								type: 'string',
+								description: 'Brief description of the project.',
+							},
+							overwrite: {
+								type: 'boolean',
+								description: 'If true, overwrites existing files. Default: false (skip existing).',
+								default: false,
+							},
+						},
+						required: ['project_name'],
+					},
+				},
+				{
+					name: 'import_tasks',
+					description:
+						'Parses a plan document (ROADMAP.md, requirements doc, or structured text) and generates YAML task files. Extracts tasks from markdown lists, phases, or sections and creates properly formatted task files with dependencies inferred from structure.',
+					inputSchema: {
+						type: 'object',
+						properties: {
+							source: {
+								type: 'string',
+								description: 'Path to the source file to parse (e.g., "ROADMAP.md", ".project/ROADMAP.md"). Can also be raw markdown content if source_type is "content".',
+							},
+							source_type: {
+								type: 'string',
+								description: 'Type of source: "file" (path to file) or "content" (raw markdown). Default: "file".',
+								enum: ['file', 'content'],
+								default: 'file',
+							},
+							project: {
+								type: 'string',
+								description: 'Project prefix for task IDs (e.g., "AUTH", "API"). Required.',
+							},
+							default_owner: {
+								type: 'string',
+								description: 'Default owner for created tasks. Default: "unassigned".',
+								default: 'unassigned',
+							},
+							default_priority: {
+								type: 'string',
+								description: 'Default priority for tasks. Default: "P2".',
+								enum: ['P0', 'P1', 'P2', 'P3'],
+								default: 'P2',
+							},
+							dry_run: {
+								type: 'boolean',
+								description: 'If true, shows what would be created without actually creating files. Default: false.',
+								default: false,
+							},
+						},
+						required: ['source', 'project'],
+					},
+				},
+				{
 					name: 'check_project_state',
 					description:
 						'Checks the current state of project management files. Returns which files exist (.project/index.md, ROADMAP.md, TODO.md, STATUS.md, DECISIONS.md) and provides a summary of project state. Use this before making changes to understand what exists.',
@@ -629,6 +694,10 @@ class ProjectMCPServer {
 						return await this.syncTodoIndex(args);
 					case 'lint_project_docs':
 						return await this.lintProjectDocs(args);
+					case 'init_project':
+						return await this.initProject(args);
+					case 'import_tasks':
+						return await this.importTasks(args);
 					case 'check_project_state':
 						return await this.checkProjectState(args);
 					default:
@@ -2675,6 +2744,596 @@ ${content}
 		return {
 			content: [{ type: 'text', text: result }],
 		};
+	}
+
+	/**
+	 * Initialize .project/ directory with standard files
+	 */
+	async initProject(args) {
+		const { project_name, project_description = '', overwrite = false } = args;
+		const date = this.getCurrentDate();
+
+		const files = [];
+		const skipped = [];
+
+		// Ensure directories exist
+		await this.ensureProjectDir();
+		await this.ensureTodosDir();
+
+		// Standard file templates
+		const templates = {
+			'index.md': `---
+title: ${project_name} - Project Index
+created: ${this.getISODate()}
+updated: ${this.getISODate()}
+---
+
+# ${project_name}
+
+${project_description}
+
+## Contract for AI Agents
+
+When a user says **"project"**, **"the project"**, or **"my project"**, the canonical sources of truth are:
+
+1. **\`.project/\`** — Current state, plans, todos, decisions (operational truth)
+2. **Root markdown files** — README.md, CONTRIBUTING.md, etc.
+3. **\`docs/\`** — Long-form reference documentation
+
+## Source Mappings
+
+### "project" / "the project"
+Searches: \`.project/\` + root files + \`docs/\`
+
+### "docs" / "documentation"
+Searches: \`docs/\` only
+
+### "plan" / "todos" / "roadmap" / "status"
+Searches: \`.project/\` only
+
+## File Structure
+
+| File | Purpose |
+|------|---------|
+| \`index.md\` | This file - contract and source mappings |
+| \`TODO.md\` | Task dashboard (auto-generated) |
+| \`ROADMAP.md\` | Project phases and milestones |
+| \`STATUS.md\` | Current project health and progress |
+| \`DECISIONS.md\` | Architecture decisions and rationale |
+| \`todos/\` | Individual task files with YAML frontmatter |
+
+## Principles
+
+- **Natural language stays natural** — Users say "project" not ".project/"
+- **Agents don't guess** — Explicit mappings defined here
+- **Intent over structure** — Language maps to intent, not directory names
+- **Operational truth** — This directory is the source of truth for current state
+
+---
+*Last Updated: ${date}*
+`,
+
+			'ROADMAP.md': `---
+title: ${project_name} - Roadmap
+created: ${this.getISODate()}
+updated: ${this.getISODate()}
+---
+
+# Roadmap
+
+## Overview
+
+${project_description || 'Project roadmap and milestones.'}
+
+## Phases
+
+### Phase 1: Foundation
+**Status:** Not Started
+**Target:** TBD
+
+- [ ] Initial setup
+- [ ] Core infrastructure
+- [ ] Basic functionality
+
+### Phase 2: Core Features
+**Status:** Not Started
+**Target:** TBD
+
+- [ ] Feature development
+- [ ] Testing
+- [ ] Documentation
+
+### Phase 3: Polish & Launch
+**Status:** Not Started
+**Target:** TBD
+
+- [ ] Bug fixes
+- [ ] Performance optimization
+- [ ] Launch preparation
+
+## Milestones
+
+| Milestone | Target Date | Status |
+|-----------|-------------|--------|
+| MVP | TBD | Not Started |
+| Beta | TBD | Not Started |
+| v1.0 | TBD | Not Started |
+
+## Future Considerations
+
+- Future feature ideas
+- Technical debt items
+- Nice-to-have improvements
+
+---
+*Last Updated: ${date}*
+`,
+
+			'STATUS.md': `---
+title: ${project_name} - Status
+created: ${this.getISODate()}
+updated: ${this.getISODate()}
+---
+
+# Project Status
+
+**Last Updated:** ${date}
+
+## Current Phase
+
+**Foundation** — Initial setup and planning
+
+## Health
+
+🟡 **Yellow** — Project initialized, work not yet started
+
+## Progress
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Planning | 🟢 In Progress | Setting up project structure |
+| Development | ⚪ Not Started | |
+| Testing | ⚪ Not Started | |
+| Documentation | 🟢 In Progress | Initial docs created |
+
+## Recent Changes
+
+- ✅ Initialized project structure
+- ✅ Created standard documentation files
+- 📋 Ready for planning phase
+
+## Active Work
+
+None yet — see TODO.md for task dashboard
+
+## Blockers
+
+None currently
+
+## Next Steps
+
+1. Define project requirements
+2. Create initial tasks using \`create_task\`
+3. Begin Phase 1 development
+
+---
+*Last Updated: ${date}*
+`,
+
+			'DECISIONS.md': `---
+title: ${project_name} - Architecture Decisions
+created: ${this.getISODate()}
+updated: ${this.getISODate()}
+---
+
+# Architecture Decisions
+
+This document records architecture decisions, trade-offs, and rationale for ${project_name}.
+
+## Decision Log
+
+### ADR-001: Project Structure
+**Date:** ${date}
+**Status:** Accepted
+
+**Context:**
+Need a standard way to organize project documentation and tasks.
+
+**Decision:**
+Use \`.project/\` directory with:
+- YAML frontmatter for task metadata
+- Jira-like task IDs ({PROJECT}-{NNN})
+- Dependency tracking between tasks
+
+**Consequences:**
+- Consistent structure across projects
+- Machine-readable task metadata
+- Clear separation of operational vs reference docs
+
+---
+
+## Template for New Decisions
+
+\`\`\`markdown
+### ADR-XXX: Title
+**Date:** YYYY-MM-DD
+**Status:** Proposed | Accepted | Deprecated | Superseded
+
+**Context:**
+What is the issue that we're seeing that is motivating this decision?
+
+**Decision:**
+What is the change that we're proposing and/or doing?
+
+**Consequences:**
+What becomes easier or more difficult to do because of this change?
+\`\`\`
+
+---
+*Last Updated: ${date}*
+`,
+
+			'TODO.md': `---
+title: ${project_name} - Task Dashboard
+created: ${this.getISODate()}
+updated: ${this.getISODate()}
+---
+
+# TODO Dashboard
+
+**Last Updated:** ${date}
+
+## Overview
+
+| Status | Count |
+|--------|-------|
+| 🔵 In Progress | 0 |
+| ⚪ Todo | 0 |
+| 🔴 Blocked | 0 |
+| ✅ Done | 0 |
+
+## 🎯 Next Up
+
+*No tasks yet. Create tasks using \`create_task\` tool.*
+
+## Getting Started
+
+1. **Create tasks:** Use \`create_task\` with project, title, and priority
+2. **View next task:** Use \`get_next_task\` to see what to work on
+3. **Update status:** Use \`update_task\` to transition task status
+4. **Sync dashboard:** Use \`sync_todo_index\` to refresh this file
+
+### Example: Create a Task
+
+\`\`\`json
+{
+  "tool": "create_task",
+  "arguments": {
+    "title": "Set up development environment",
+    "project": "${project_name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 6) || 'PROJ'}",
+    "priority": "P1",
+    "owner": "developer"
+  }
+}
+\`\`\`
+
+---
+*This file is auto-generated by \`sync_todo_index\`. Tasks are in \`.project/todos/\`.*
+`,
+		};
+
+		// Create each file
+		for (const [filename, content] of Object.entries(templates)) {
+			const filePath = join(PROJECT_DIR, filename);
+			const exists = await this.fileExists(filePath);
+
+			if (exists && !overwrite) {
+				skipped.push(filename);
+				continue;
+			}
+
+			await writeFile(filePath, content, 'utf-8');
+			files.push({ file: filename, action: exists ? 'overwritten' : 'created' });
+		}
+
+		// Create .gitkeep in todos/ if empty
+		const todosGitkeep = join(TODOS_DIR, '.gitkeep');
+		if (!(await this.fileExists(todosGitkeep))) {
+			await writeFile(todosGitkeep, '', 'utf-8');
+		}
+
+		let result = `## Project Initialized: ${project_name}\n\n`;
+		result += `**Location:** \`.project/\`\n\n`;
+
+		if (files.length > 0) {
+			result += `### Files Created\n\n`;
+			for (const f of files) {
+				result += `- ✅ \`${f.file}\` (${f.action})\n`;
+			}
+			result += `- ✅ \`todos/\` directory\n\n`;
+		}
+
+		if (skipped.length > 0) {
+			result += `### Files Skipped (already exist)\n\n`;
+			for (const f of skipped) {
+				result += `- ⏭️ \`${f}\`\n`;
+			}
+			result += `\n*Use \`overwrite: true\` to replace existing files.*\n\n`;
+		}
+
+		result += `### Next Steps\n\n`;
+		result += `1. Review and customize \`.project/ROADMAP.md\`\n`;
+		result += `2. Create tasks with \`create_task\`\n`;
+		result += `3. Import tasks from roadmap with \`import_tasks\`\n`;
+		result += `4. Run \`lint_project_docs\` to validate structure\n`;
+
+		return {
+			content: [{ type: 'text', text: result }],
+		};
+	}
+
+	/**
+	 * Import tasks from a plan document
+	 */
+	async importTasks(args) {
+		const {
+			source,
+			source_type = 'file',
+			project,
+			default_owner = 'unassigned',
+			default_priority = 'P2',
+			dry_run = false,
+		} = args;
+
+		await this.ensureTodosDir();
+
+		// Get content
+		let content;
+		if (source_type === 'file') {
+			// Try multiple locations
+			const locations = [
+				source,
+				join(PROJECT_ROOT, source),
+				join(PROJECT_DIR, source),
+			];
+			let found = false;
+			for (const loc of locations) {
+				if (await this.fileExists(loc)) {
+					content = await readFile(loc, 'utf-8');
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				return {
+					content: [{ type: 'text', text: `❌ File not found: ${source}` }],
+					isError: true,
+				};
+			}
+		} else {
+			content = source;
+		}
+
+		// Parse tasks from content
+		const tasks = this.parseTasksFromContent(content, project.toUpperCase(), default_priority);
+
+		if (tasks.length === 0) {
+			return {
+				content: [{
+					type: 'text',
+					text: `⚠️ No tasks found in the source.\n\nThe parser looks for:\n- Markdown lists with \`[ ]\` or \`- \` items\n- Phase/section headers (## or ###)\n- Structured content with clear task items`,
+				}],
+			};
+		}
+
+		// Assign owners and IDs
+		const projectPrefix = project.toUpperCase();
+		const existingIds = new Set();
+		
+		// Get existing task IDs
+		try {
+			const files = await readdir(TODOS_DIR);
+			for (const file of files) {
+				const match = file.match(/^([A-Z]+-\d+)\.md$/);
+				if (match) existingIds.add(match[1]);
+			}
+		} catch {
+			// Directory might not exist
+		}
+
+		// Assign sequential IDs
+		let nextNum = 1;
+		for (const task of tasks) {
+			while (existingIds.has(`${projectPrefix}-${String(nextNum).padStart(3, '0')}`)) {
+				nextNum++;
+			}
+			task.id = `${projectPrefix}-${String(nextNum).padStart(3, '0')}`;
+			task.owner = default_owner;
+			existingIds.add(task.id);
+			nextNum++;
+		}
+
+		// Infer dependencies from structure (tasks in same section depend on previous)
+		let lastParentId = null;
+		for (let i = 0; i < tasks.length; i++) {
+			const task = tasks[i];
+			if (task.isParent) {
+				lastParentId = task.id;
+			} else if (lastParentId && task.phase === tasks.find(t => t.id === lastParentId)?.phase) {
+				// Child tasks depend on parent
+				task.depends_on = [lastParentId];
+			}
+		}
+
+		let result = `## Import Preview\n\n`;
+		result += `**Source:** ${source_type === 'file' ? source : '(inline content)'}\n`;
+		result += `**Project:** ${projectPrefix}\n`;
+		result += `**Tasks Found:** ${tasks.length}\n\n`;
+
+		if (dry_run) {
+			result += `### Tasks to Create (Dry Run)\n\n`;
+			result += `| ID | Priority | Title | Phase | Deps |\n`;
+			result += `|----|----------|-------|-------|------|\n`;
+			for (const task of tasks) {
+				result += `| ${task.id} | ${task.priority} | ${task.title.substring(0, 40)}${task.title.length > 40 ? '...' : ''} | ${task.phase || '-'} | ${task.depends_on?.join(', ') || '-'} |\n`;
+			}
+			result += `\n*This is a dry run. Run with \`dry_run: false\` to create files.*\n`;
+		} else {
+			// Create task files
+			const created = [];
+			for (const task of tasks) {
+				const filename = `${task.id}.md`;
+				const filePath = join(TODOS_DIR, filename);
+
+				const frontmatter = {
+					id: task.id,
+					title: task.title,
+					project: projectPrefix,
+					priority: task.priority,
+					status: 'todo',
+					owner: task.owner,
+					depends_on: task.depends_on || [],
+					blocked_by: [],
+					tags: task.tags || [],
+					created: this.getISODate(),
+					updated: this.getISODate(),
+				};
+				if (task.phase) frontmatter.phase = task.phase;
+
+				let taskContent = `# ${task.id}: ${task.title}\n\n`;
+				taskContent += `## Description\n\n${task.description || 'Imported from plan.'}\n\n`;
+				if (task.subtasks && task.subtasks.length > 0) {
+					taskContent += `## Subtasks\n\n`;
+					for (const sub of task.subtasks) {
+						taskContent += `- [ ] ${sub}\n`;
+					}
+					taskContent += '\n';
+				}
+				taskContent += `## Notes\n\n`;
+
+				const fileContent = matter.stringify(taskContent, frontmatter);
+				await writeFile(filePath, fileContent, 'utf-8');
+				created.push(task);
+			}
+
+			result += `### Tasks Created\n\n`;
+			result += `| ID | Priority | Title |\n`;
+			result += `|----|----------|-------|\n`;
+			for (const task of created) {
+				result += `| ${task.id} | ${task.priority} | ${task.title.substring(0, 50)}${task.title.length > 50 ? '...' : ''} |\n`;
+			}
+
+			result += `\n✅ **${created.length} tasks created** in \`.project/todos/\`\n\n`;
+			result += `### Next Steps\n\n`;
+			result += `1. Run \`sync_todo_index\` to update the dashboard\n`;
+			result += `2. Use \`get_next_task\` to see what to work on\n`;
+			result += `3. Run \`lint_project_docs\` to validate\n`;
+		}
+
+		return {
+			content: [{ type: 'text', text: result }],
+		};
+	}
+
+	/**
+	 * Parse tasks from markdown content
+	 */
+	parseTasksFromContent(content, project, defaultPriority) {
+		const tasks = [];
+		const lines = content.split('\n');
+		
+		let currentPhase = null;
+		let currentSection = null;
+		let currentParent = null;
+
+		// Priority keywords
+		const priorityKeywords = {
+			'critical': 'P0', 'blocker': 'P0', 'urgent': 'P0',
+			'high': 'P1', 'important': 'P1',
+			'medium': 'P2', 'normal': 'P2',
+			'low': 'P3', 'minor': 'P3', 'nice-to-have': 'P3',
+		};
+
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+			const trimmed = line.trim();
+
+			// Detect phase/section headers
+			const h2Match = trimmed.match(/^##\s+(.+)/);
+			const h3Match = trimmed.match(/^###\s+(.+)/);
+
+			if (h2Match) {
+				currentPhase = h2Match[1].replace(/[*_]/g, '').trim();
+				currentSection = null;
+				currentParent = null;
+				continue;
+			}
+			if (h3Match) {
+				currentSection = h3Match[1].replace(/[*_]/g, '').trim();
+				currentParent = null;
+				continue;
+			}
+
+			// Detect task items
+			const taskMatch = trimmed.match(/^[-*]\s*\[[ x]\]\s*(.+)/) || trimmed.match(/^[-*]\s+(.+)/);
+			
+			if (taskMatch) {
+				let title = taskMatch[1].trim();
+				
+				// Skip if it's just a continuation or empty
+				if (!title || title.length < 3) continue;
+				
+				// Skip common non-task items
+				if (/^(note:|see:|ref:|link:)/i.test(title)) continue;
+
+				// Detect priority from keywords
+				let priority = defaultPriority;
+				const titleLower = title.toLowerCase();
+				for (const [keyword, pri] of Object.entries(priorityKeywords)) {
+					if (titleLower.includes(keyword)) {
+						priority = pri;
+						break;
+					}
+				}
+
+				// Check indentation for subtasks
+				const indent = line.search(/\S/);
+				const isSubtask = indent > 2 && currentParent;
+
+				if (isSubtask && currentParent) {
+					// Add as subtask to parent
+					const parent = tasks.find(t => t.tempId === currentParent);
+					if (parent) {
+						parent.subtasks = parent.subtasks || [];
+						parent.subtasks.push(title);
+					}
+				} else {
+					// Create new task
+					const task = {
+						tempId: `temp-${tasks.length}`,
+						title: title,
+						priority: priority,
+						phase: currentPhase,
+						section: currentSection,
+						isParent: indent <= 2,
+						subtasks: [],
+						tags: [],
+					};
+
+					// Extract tags from brackets
+					const tagMatch = title.match(/\[([^\]]+)\]/g);
+					if (tagMatch) {
+						task.tags = tagMatch.map(t => t.slice(1, -1).toLowerCase());
+						task.title = title.replace(/\[[^\]]+\]/g, '').trim();
+					}
+
+					tasks.push(task);
+					currentParent = task.tempId;
+				}
+			}
+		}
+
+		return tasks;
 	}
 
 	/**

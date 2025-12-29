@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2024-12-29
+
+### Added
+- `init_project` tool for bootstrapping `.project/` with standard files
+- `import_tasks` tool for parsing plans and generating YAML task files
+- Standard templates for index.md, ROADMAP.md, STATUS.md, DECISIONS.md, TODO.md
+- Dry-run mode for task import preview
+- Priority inference from keywords (critical, high, medium, low)
+- Dependency inference from document structure
+- Tag extraction from bracket notation in task titles
+
+### Changed
+- README updated with new tool documentation and examples
+
 ## [1.1.0] - 2024-12-29
 
 ### Added

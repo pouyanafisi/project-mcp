@@ -1,6 +1,6 @@
 {
 	"name": "project-mcp",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"description": "Intent-based MCP server for project documentation search. Maps natural language queries to the right sources automatically—no configuration needed. The standard for AI agent documentation search.",
 	"type": "module",
 	"main": "index.js",

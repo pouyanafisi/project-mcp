@@ -115,6 +115,7 @@ Add to `.mcp.json`:
 
 | Tool                       | Description                                    | Use When                          |
 | -------------------------- | ---------------------------------------------- | --------------------------------- |
+| `init_project`             | Initialize `.project/` with all standard files | Starting a new project            |
 | `manage_project_file`      | Smart create/update based on content analysis  | Auto-detect which file to update  |
 | `create_or_update_roadmap` | Create or update ROADMAP.md                    | Planning milestones and phases    |
 | `create_or_update_todo`    | Create or update TODO.md                       | Managing project-wide todos       |
@@ -131,6 +132,7 @@ Add to `.mcp.json`:
 | `update_task`     | Update any task field, transition status            | Modifying existing tasks          |
 | `get_next_task`   | Get dependency-aware next task(s) to work on        | Determining what to do next       |
 | `list_tasks`      | List/filter tasks with summary dashboard            | Reviewing all tasks               |
+| `import_tasks`    | Parse plan/roadmap and generate YAML task files     | Bulk task creation from docs      |
 | `sync_todo_index` | Generate TODO.md dashboard from all tasks           | Updating the overview             |
 
 ### Quality Tools
@@ -359,6 +361,36 @@ When a user says **"project"**, the canonical sources of truth are:
 
 Returns tasks sorted by priority where all dependencies are complete.
 
+### Example: Initialize Project
+
+```json
+{
+	"tool": "init_project",
+	"arguments": {
+		"project_name": "My App",
+		"project_description": "A web application for task management"
+	}
+}
+```
+
+Creates `.project/` with all standard files: `index.md`, `TODO.md`, `ROADMAP.md`, `STATUS.md`, `DECISIONS.md`, and `todos/` directory.
+
+### Example: Import Tasks from Roadmap
+
+```json
+{
+	"tool": "import_tasks",
+	"arguments": {
+		"source": ".project/ROADMAP.md",
+		"project": "APP",
+		"default_owner": "cursor",
+		"dry_run": true
+	}
+}
+```
+
+Parses the roadmap and creates YAML task files. Use `dry_run: true` to preview first.
+
 ---
 
 ## ⚙️ Configuration
@@ -420,7 +452,7 @@ node index.js
 - **[Contributing](CONTRIBUTING.md)** — How to contribute
 - **[Security](SECURITY.md)** — Security policy
 - **[Changelog](CHANGELOG.md)** — Version history
-- **[Release Notes v1.1.0](RELEASE_NOTES_v1.1.0.md)** — Latest release
+- **[Release Notes v1.2.0](RELEASE_NOTES_v1.2.0.md)** — Latest release
 
 ---
 

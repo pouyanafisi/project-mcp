@@ -2,6 +2,8 @@
 
 **Release Date:** December 29, 2024
 
+> **Note:** See [RELEASE_NOTES_v1.2.0.md](RELEASE_NOTES_v1.2.0.md) for the latest release.
+
 ## Overview
 
 This release introduces a comprehensive task management system with YAML frontmatter, dependency tracking, and Jira-like IDs. It also adds documentation linting to ensure project files conform to standards.
