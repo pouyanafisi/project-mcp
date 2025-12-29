@@ -2,7 +2,7 @@
 
 **Release Date:** December 29, 2024
 
-> **Note:** See [RELEASE_NOTES_v1.2.0.md](RELEASE_NOTES_v1.2.0.md) for the
+> **Note:** See [RELEASE_NOTES_v1.2.0.md](./RELEASE_NOTES_v1.2.0.md) for the
 > latest release.
 
 ## Overview

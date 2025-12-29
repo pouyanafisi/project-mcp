@@ -516,7 +516,7 @@ node index.js
 - **[Contributing](CONTRIBUTING.md)** — How to contribute
 - **[Security](SECURITY.md)** — Security policy
 - **[Changelog](CHANGELOG.md)** — Version history
-- **[Release Notes v1.3.0](RELEASE_NOTES_v1.3.0.md)** — Latest release
+- **[Release Notes v1.3.0](docs/releases/RELEASE_NOTES_v1.3.0.md)** — Latest release
 
 ---
 
