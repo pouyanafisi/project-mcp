@@ -1,18 +1,18 @@
 {
 	"name": "project-mcp",
-	"version": "2.0.0",
+	"version": "3.0.0",
 	"description": "Intent-based MCP server for project documentation search. Maps natural language queries to the right sources automatically—no configuration needed. The standard for AI agent documentation search.",
 	"type": "module",
-  "main": "src/index.js",
+	"main": "src/index.js",
 	"bin": {
-    "project-mcp": "src/index.js"
+		"project-mcp": "src/index.js"
 	},
 	"scripts": {
-    "start": "node src/index.js",
+		"start": "node src/index.js",
 		"test": "node --test test/*.test.js",
-    "lint": "node --check src/index.js",
-    "format": "prettier --write \"**/*.{js,md,json}\"",
-    "format:check": "prettier --check \"**/*.{js,md,json}\"",
+		"lint": "node --check src/index.js",
+		"format": "prettier --write \"**/*.{js,md,json}\"",
+		"format:check": "prettier --check \"**/*.{js,md,json}\"",
 		"prepublishOnly": "npm run lint && npm test"
 	},
 	"keywords": [
@@ -68,11 +68,11 @@
 		"gray-matter": "^4.0.3",
 		"mime-types": "^2.1.35"
 	},
-  "devDependencies": {
-    "prettier": "^3.7.4"
-  },
+	"devDependencies": {
+		"prettier": "^3.7.4"
+	},
 	"files": [
-    "src/",
+		"src/",
 		"README.md",
 		"LICENSE"
 	]
