@@ -1,48 +1,76 @@
 ---
 title: Project Knowledge Index
 created: '2026-01-01'
-updated: '2026-01-01'
+updated: '2026-01-02'
 ---
 
 # Project Knowledge Index
 
 ## Contract for AI Agents
 
-When a user says **"project"**, **"the project"**, or **"my project"**, the canonical sources of truth are, in order:
+### Critical Distinction: Project Management vs Project Documentation
 
-1. **`.project/`** — Current state, plans, todos, decisions, operational truth
-2. **Root markdown files** — README.md, DEVELOPMENT.md, ARCHITECTURE.md, etc.
-3. **`docs/`** — Long-form reference documentation
+| Term | Means | Sources |
+|------|-------|---------|
+| **"project docs"** / **"project documentation"** | Application documentation (HOW the system works) | `docs/` + `DECISIONS.md` |
+| **"project status"** / **"todos"** / **"roadmap"** | Project management (WHAT we're doing) | `.project/` management files |
+
+**DECISIONS.md is special**: It's application documentation (explains WHY decisions were made) even though it lives in `.project/`.
 
 ## Source Mappings
 
-### "project" / "the project" / "my project"
+### "project docs" / "project documents" / "project documentation"
 
-Searches (in order):
+APPLICATION documentation — how the system works, why it was built this way.
 
-- `.project/` directory
-- Root-level markdown files (README.md, DEVELOPMENT.md, ARCHITECTURE.md, etc.)
+Searches:
+
 - `docs/` directory
+- `DECISIONS.md` (architecture decisions are documentation)
 
 ### "docs" / "documentation" / "reference"
 
-Searches only:
+Reference documentation only.
+
+Searches:
 
 - `docs/` directory
 
-### "plan" / "todos" / "roadmap" / "status" / "operational" / "decisions"
+### "plan" / "todos" / "roadmap" / "status" / "backlog"
 
-Searches only:
+Project MANAGEMENT — tracking work, not documenting the system.
+
+Searches:
+
+- `.project/` (STATUS.md, TODO.md, ROADMAP.md, BACKLOG.md, todos/)
+
+### "decisions" / "architecture decisions" / "ADR"
+
+Architecture decision records.
+
+Searches:
+
+- `DECISIONS.md`
+
+### "project" / "the project"
+
+Everything (when intent is ambiguous).
+
+Searches:
 
 - `.project/` directory
+- Root-level markdown files
+- `docs/` directory
 
 ## Principles
 
-- **Natural language stays natural** - Users say "project" not ".project/"
-- **Repo stays conventional** - Standard directory names
-- **Agents don't guess** - Explicit mappings defined here
-- **Intent over structure** - Language maps to intent, not directory names
+- **"Project docs" ≠ "Project management"** — "Update project docs" means application documentation, not task tracking
+- **DECISIONS.md is documentation** — It explains the system, not tracks work
+- **Natural language stays natural** — Users say "project docs" not "docs/ + DECISIONS.md"
+- **Repo stays conventional** — Standard directory names
+- **Agents don't guess** — Explicit mappings defined here
+- **Intent over structure** — Language maps to intent, not directory names
 
 ---
 
-_Last Updated: 2025-01-01_
+_Last Updated: 2026-01-02_

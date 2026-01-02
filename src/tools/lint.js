@@ -378,42 +378,52 @@ ${project_description}
 
 ## Contract for AI Agents
 
-When a user says **"project"**, **"the project"**, or **"my project"**, the canonical sources of truth are:
+### Critical Distinction: Project Management vs Project Documentation
 
-1. **\`.project/\`** — Current state, plans, todos, decisions (operational truth)
-2. **Root markdown files** — README.md, CONTRIBUTING.md, etc.
-3. **\`docs/\`** — Long-form reference documentation
+| Term | Means | Sources |
+|------|-------|---------|
+| **"project docs"** / **"project documentation"** | Application documentation (HOW the system works) | \`docs/\` + \`DECISIONS.md\` |
+| **"project status"** / **"todos"** / **"roadmap"** | Project management (WHAT we're doing) | \`.project/\` management files |
+
+**DECISIONS.md is special**: It's application documentation (explains WHY decisions were made) even though it lives in \`.project/\`.
 
 ## Source Mappings
 
-### "project" / "the project"
-Searches: \`.project/\` + root files + \`docs/\`
+### "project docs" / "project documents" / "project documentation"
+APPLICATION documentation — how the system works, why it was built this way.
+Searches: \`docs/\` + \`DECISIONS.md\`
 
-### "docs" / "documentation"
+### "docs" / "documentation" / "reference"
+Reference documentation only.
 Searches: \`docs/\` only
 
-### "plan" / "todos" / "roadmap" / "status"
-Searches: \`.project/\` only
+### "plan" / "todos" / "roadmap" / "status" / "backlog"
+Project MANAGEMENT — tracking work, not documenting the system.
+Searches: \`.project/\` (excluding DECISIONS.md)
+
+### "project" / "the project"
+Everything (when intent is ambiguous).
+Searches: \`.project/\` + root files + \`docs/\`
 
 ## File Structure
 
-| File | Purpose |
-|------|---------|
-| \`index.md\` | This file - contract and source mappings |
-| \`BACKLOG.md\` | Prioritized work queue (future tasks) |
-| \`TODO.md\` | Task dashboard (active work, auto-generated) |
-| \`ROADMAP.md\` | Project phases and milestones |
-| \`STATUS.md\` | Current project health and progress |
-| \`DECISIONS.md\` | Architecture decisions and rationale |
-| \`todos/\` | Active task files (10-30 items, not hundreds) |
-| \`archive/\` | Completed tasks (for history) |
+| File | Type | Purpose |
+|------|------|---------|
+| \`index.md\` | Contract | This file - source mappings |
+| \`DECISIONS.md\` | **Documentation** | Architecture decisions (WHY) |
+| \`BACKLOG.md\` | Management | Prioritized work queue |
+| \`TODO.md\` | Management | Task dashboard |
+| \`ROADMAP.md\` | Management | Project phases/milestones |
+| \`STATUS.md\` | Management | Project health/progress |
+| \`todos/\` | Management | Active task files |
+| \`archive/\` | Management | Completed tasks |
 
 ## Principles
 
-- **Natural language stays natural** — Users say "project" not ".project/"
+- **"Project docs" ≠ "Project management"** — Users saying "update project docs" want application documentation updated, not task tracking
+- **DECISIONS.md is documentation** — It explains the system, not tracks work
+- **Natural language stays natural** — "Project docs" maps to docs/ + DECISIONS.md
 - **Agents don't guess** — Explicit mappings defined here
-- **Intent over structure** — Language maps to intent, not directory names
-- **Operational truth** — This directory is the source of truth for current state
 
 ---
 *Last Updated: ${date}*

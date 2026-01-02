@@ -24,6 +24,7 @@ export const promptToolMapping = {
 	get_backlog: ['get_backlog'],
 	add_decision: ['add_decision'],
 	update_status: ['update_project_status'],
+	update_project_docs: ['search_project', 'get_doc', 'add_decision', 'list_docs'],
 };
 
 /**
@@ -200,6 +201,25 @@ export const prompts = [
 			{
 				name: 'health',
 				description: 'Project health (green, yellow, red)',
+				required: false,
+			},
+		],
+	},
+	{
+		name: 'update_project_docs',
+		description:
+			'Update project documentation - the APPLICATION documentation that explains how the system works. Use when user says "update project docs", "update project documents", "update project documentation", "update application docs", or "document this". This is DIFFERENT from project management (status, todos, roadmap) - this updates the docs/ folder and DECISIONS.md which contain reference documentation about the application itself.',
+		arguments: [
+			{
+				name: 'content',
+				description:
+					'What to document or update. The model will determine whether this belongs in docs/ (application documentation) or DECISIONS.md (architecture decisions).',
+				required: true,
+			},
+			{
+				name: 'doc_type',
+				description:
+					'Hint for documentation type: "decision" for architecture decisions (DECISIONS.md), "release" for release notes, "guide" for user guides, "api" for API docs, or "auto" to let the model decide based on content.',
 				required: false,
 			},
 		],

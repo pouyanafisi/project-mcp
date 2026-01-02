@@ -203,6 +203,32 @@ This adds a timestamped status entry to STATUS.md.`,
 				},
 			},
 		],
+		update_project_docs: [
+			{
+				role: 'user',
+				content: {
+					type: 'text',
+					text: `Update project documentation with: "${args.content || '[CONTENT]'}".
+
+IMPORTANT: This is about APPLICATION DOCUMENTATION (how the system works), NOT project management (status, todos, roadmap).
+
+${args.doc_type === 'decision' ? `This is an architecture decision. Use the \`add_decision\` tool to add it to DECISIONS.md.` : args.doc_type === 'release' ? `This is a release note. Look in docs/releases/ and update the appropriate file.` : `Based on the content, determine where this documentation belongs:
+
+1. **Architecture Decision?** (design choice, trade-off, technical rationale)
+   → Use \`add_decision\` tool to add to DECISIONS.md
+
+2. **Application Documentation?** (how-to, API docs, guides, reference)
+   → First use \`search_project\` with intent "project_docs" to find relevant existing docs
+   → Then use \`list_docs\` to see the docs/ structure
+   → Update the appropriate file in docs/
+
+3. **Release Notes?** (version changes, features, fixes)
+   → Check docs/releases/ for the right file
+
+The model decides where this content best fits based on its nature.`}`,
+				},
+			},
+		],
 	};
 
 	return (
@@ -236,6 +262,7 @@ export function getMessageHandlerKeys() {
 		get_backlog: true,
 		add_decision: true,
 		update_status: true,
+		update_project_docs: true,
 	};
 	return Object.keys(messages);
 }

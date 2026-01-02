@@ -19,15 +19,24 @@ export const THOUGHTS_ARCHIVE_DIR = join(THOUGHTS_TODOS_DIR, '.archive');
 /**
  * Intent to source mapping.
  * Maps user intent to which directories should be searched.
+ *
+ * IMPORTANT DISTINCTION:
+ * - "project" (operational) → .project/ management files (status, todos, roadmap, backlog)
+ * - "project_docs" (documentation) → docs/ folder + DECISIONS.md (application documentation)
+ *
+ * When users say "project docs" or "project documentation", they mean APPLICATION
+ * documentation (how the system works), NOT project management (tracking work).
  */
 export const INTENT_SOURCES = {
 	project: ['project', 'root', 'docs'], // .project/, root files, docs/
 	docs: ['docs'], // Only docs/
+	project_docs: ['docs', 'decisions'], // Application documentation: docs/ + DECISIONS.md
 	plan: ['project'], // Only .project/
 	todos: ['project'],
 	roadmap: ['project'],
 	status: ['project'],
 	operational: ['project'],
+	decisions: ['decisions'], // Architecture decisions only (DECISIONS.md)
 };
 
 /**

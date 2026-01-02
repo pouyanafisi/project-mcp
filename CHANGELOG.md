@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-01-02
+
+### Added
+
+**New "project_docs" Intent for Application Documentation**
+
+- `project_docs` intent that routes "project docs/documents/documentation" to
+  application documentation (`docs/` + `DECISIONS.md`)
+- `decisions` intent for architecture decisions only
+- `update_project_docs` prompt for updating application documentation with smart
+  routing
+
+### Changed
+
+- **Critical Distinction**: "Project docs" now correctly means APPLICATION
+  documentation (how the system works), not project management (tracking work)
+- `DECISIONS.md` is now tagged as `source='decisions'` since it's documentation
+  (explains WHY), not project management
+- Updated `search_project` tool to support `project_docs` and `decisions`
+  intents
+- Updated `detectIntent()` to recognize natural language variations like
+  "project docs", "project documents", "update project documentation"
+- Updated `index.md` contract template with clear distinction between project
+  management vs project documentation
+- Updated example `index.md` to document the source mapping differences
+
+### Documentation
+
+- Clarified that `.project/` files (STATUS, TODO, ROADMAP, BACKLOG) are for
+  project MANAGEMENT
+- Clarified that `docs/` + `DECISIONS.md` are for project DOCUMENTATION
+- Added source mapping table to contract file
+
 ## [3.2.0] - 2024-12-29
 
 ### Added

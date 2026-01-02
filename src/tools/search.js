@@ -16,7 +16,7 @@ export const definitions = [
 	{
 		name: 'search_project',
 		description:
-			'Search across all project sources: .project/ (operational truth), root-level files, and docs/ (reference truth). Use this when the user says "project", "the project", or asks about project status, plans, todos, or roadmap. Maps natural language to appropriate sources automatically.',
+			'Search across project sources with smart intent detection. IMPORTANT: "project docs" means APPLICATION documentation (docs/ + DECISIONS.md), NOT project management. Use intent "project_docs" when user says "project docs/documents/documentation" to search application documentation. Use intent "plan" for project management (status, todos, roadmap, backlog).',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -28,8 +28,19 @@ export const definitions = [
 				intent: {
 					type: 'string',
 					description:
-						'Optional: Intent type to map to sources. Options: "project" (searches .project/, root, docs), "docs" (only docs/), "plan/todos/roadmap/status/operational" (only .project/). If not specified, automatically detects from query.',
-					enum: ['project', 'docs', 'plan', 'todos', 'roadmap', 'status', 'operational', ''],
+						'Intent type to map to sources. "project_docs" searches docs/ + DECISIONS.md (application documentation). "docs" searches only docs/. "plan/todos/roadmap/status/operational" searches .project/ (project management). "project" searches everything. "decisions" searches only DECISIONS.md.',
+					enum: [
+						'project',
+						'project_docs',
+						'docs',
+						'decisions',
+						'plan',
+						'todos',
+						'roadmap',
+						'status',
+						'operational',
+						'',
+					],
 				},
 				maxResults: {
 					type: 'number',

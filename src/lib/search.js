@@ -31,12 +31,28 @@ export function detectIntent(query, explicitIntent) {
 
 	const queryLower = query.toLowerCase();
 
-	// Check for operational keywords
-	if (/\b(plan|plans|todo|todos|roadmap|status|operational|current state|decisions)\b/.test(queryLower)) {
+	// Check for "project docs/documents/documentation" - this means APPLICATION documentation
+	// NOT project management. Routes to docs/ folder + DECISIONS.md
+	if (
+		/\b(project\s+doc(s|ument(s|ation)?)?|update\s+(project\s+)?doc(s|ument(s|ation)?)?|application\s+doc(s|ument(s|ation)?)?)\b/.test(
+			queryLower
+		)
+	) {
+		return 'project_docs';
+	}
+
+	// Check for architecture decisions specifically
+	if (/\b(decision(s)?|adr|architecture\s+decision(s)?|technical\s+decision(s)?)\b/.test(queryLower)) {
+		return 'decisions';
+	}
+
+	// Check for operational/project management keywords (status, todos, roadmap, backlog)
+	// This is DIFFERENT from "project docs" - this is about tracking work, not documenting the system
+	if (/\b(plan|plans|todo|todos|roadmap|status|operational|current state|backlog)\b/.test(queryLower)) {
 		return 'plan';
 	}
 
-	// Check for docs-specific keywords
+	// Check for docs-only keywords (just "docs" or "documentation" without "project")
 	if (/\b(docs|documentation|reference|guide|guides|api docs)\b/.test(queryLower)) {
 		return 'docs';
 	}
@@ -51,7 +67,12 @@ export function detectIntent(query, explicitIntent) {
  * @returns {string[]} Array of source names
  */
 export function getSourcesForIntent(intent) {
-	return INTENT_SOURCES[intent] || INTENT_SOURCES.project;
+	const sources = INTENT_SOURCES[intent] || INTENT_SOURCES.project;
+
+	// 'decisions' is a virtual source that maps to DECISIONS.md in .project/
+	// When we see 'decisions' in the sources, we need to include it for filtering
+	// The actual loading happens in loadAllFiles() which tags DECISIONS.md with source='decisions'
+	return sources;
 }
 
 /**
@@ -67,8 +88,21 @@ export async function loadAllFiles(force = false) {
 	const allFiles = [];
 
 	// Load .project/ directory
+	// DECISIONS.md gets special treatment - it's tagged as both 'project' and 'decisions'
+	// because it's application documentation (explains WHY the system is built this way)
+	// not just project management
 	try {
-		await scanDirectory(PROJECT_DIR, '.project', allFiles, 'project');
+		const projectFiles = [];
+		await scanDirectory(PROJECT_DIR, '.project', projectFiles, 'project');
+
+		// Tag DECISIONS.md with source='decisions' so it appears in project_docs queries
+		for (const file of projectFiles) {
+			if (file.path.endsWith('DECISIONS.md')) {
+				// DECISIONS.md is application documentation, not just project management
+				file.source = 'decisions';
+			}
+			allFiles.push(file);
+		}
 	} catch (error) {
 		// .project/ might not exist
 	}
