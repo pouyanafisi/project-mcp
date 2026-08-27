@@ -53,7 +53,7 @@ Add to `.mcp.json`:
   - [Configure](#configure)
   - [Table of Contents](#table-of-contents)
   - [🎯 Why project-mcp?](#-why-project-mcp)
-  - [🛠️ Available Tools (37)](#️-available-tools-37)
+  - [🛠️ Available Tools (47)](#️-available-tools-47)
     - [Search Tools](#search-tools)
     - [Project Management Tools](#project-management-tools)
     - [Backlog Tools](#backlog-tools)
@@ -111,7 +111,7 @@ automatically:
 
 ---
 
-## 🛠️ Available Tools (37)
+## 🛠️ Available Tools (47)
 
 ### Search Tools
 
@@ -135,6 +135,16 @@ automatically:
 | `create_or_update_index`     | Create or update index.md (contract file)      | Defining source mappings         |
 | `create_or_update_decisions` | Create or update DECISIONS.md                  | Recording architecture decisions |
 | `check_project_state`        | Check which project files exist                | Before making changes            |
+
+### Documentation Tools
+
+| Tool                      | Description                           | Use When                          |
+| ------------------------- | ------------------------------------- | --------------------------------- |
+| `create_doc`              | Create new doc in `docs/`             | Adding application documentation  |
+| `update_doc`              | Update existing doc in `docs/`        | Modifying reference docs          |
+| `add_release_note`        | Add versioned release notes           | Documenting releases              |
+| `update_architecture_doc` | Create/update architecture docs       | Documenting system design         |
+| `list_doc_categories`     | List documentation categories         | Understanding docs structure      |
 
 ### Backlog Tools
 
@@ -178,6 +188,16 @@ automatically:
 | `update_project_status` | Quick timestamped status update   | Reporting progress               |
 | `add_roadmap_milestone` | Add milestone with deliverables   | Planning future work             |
 | `get_roadmap`           | Read roadmap content              | Viewing planned work             |
+
+### Thoughts Tools
+
+| Tool                    | Description                              | Use When                         |
+| ----------------------- | ---------------------------------------- | -------------------------------- |
+| `process_thoughts`      | Process brain dump files into tasks      | Converting notes to actionable tasks |
+| `archive_thought`       | Archive processed thought files          | Cleaning up processed notes      |
+| `list_thoughts`         | List unprocessed thought files           | Reviewing pending brain dumps    |
+| `list_archived_thoughts`| List processed thought history           | Reviewing what was processed     |
+| `get_thought`           | Read specific thought file               | Viewing thought content          |
 
 ### Quality Tools
 

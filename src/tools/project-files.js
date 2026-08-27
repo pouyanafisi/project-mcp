@@ -9,13 +9,29 @@ import { readFile, writeFile, join, ensureProjectDir, fileExists } from '../lib/
 import { getCurrentDate } from '../lib/dates.js';
 
 /**
- * Tool definitions
+ * Tool definitions for PROJECT MANAGEMENT files in .project/ directory.
+ *
+ * IMPORTANT DISTINCTION FOR NLP/LLM:
+ * - These tools manage OPERATIONAL/PROJECT MANAGEMENT files in .project/
+ * - They track: work progress, project health, task status, operational decisions
+ * - For APPLICATION DOCUMENTATION (API docs, guides, architecture specs), use docs.js tools
+ *
+ * When to use these tools:
+ * - Updating project status/health → update_project_status, create_or_update_status
+ * - Recording operational decisions made during development → add_decision
+ * - Planning work and milestones → create_or_update_roadmap, add_roadmap_milestone
+ * - Managing tasks → create_or_update_todo
+ *
+ * When to use docs.js tools instead:
+ * - Writing permanent reference documentation → create_doc, update_doc
+ * - Documenting system architecture for posterity → update_architecture_doc
+ * - Creating release notes → add_release_note
  */
 export const definitions = [
 	{
 		name: 'manage_project_file',
 		description:
-			'Smart tool that automatically determines which project file to create or update based on context. Use this when making changes to the project - it will check project state and determine if index.md, ROADMAP.md, TODO.md, STATUS.md, or DECISIONS.md should be created/updated. This is the primary tool for managing project documentation during development.',
+			'Smart tool for PROJECT MANAGEMENT files in .project/ directory. Automatically determines which file to update: index.md, ROADMAP.md, TODO.md, STATUS.md, or DECISIONS.md. Use this for OPERATIONAL tracking (work progress, project health, tasks) - NOT for application documentation (use create_doc/update_doc for docs/ instead).',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -43,7 +59,7 @@ export const definitions = [
 	{
 		name: 'check_project_state',
 		description:
-			'Checks the current state of project management files. Returns which files exist (.project/index.md, ROADMAP.md, TODO.md, STATUS.md, DECISIONS.md) and provides a summary of project state. Use this before making changes to understand what exists.',
+			'Checks the current state of PROJECT MANAGEMENT files in .project/ directory. Returns which files exist (index.md, ROADMAP.md, TODO.md, STATUS.md, DECISIONS.md) and provides a summary. Use this before making changes to understand what operational tracking exists.',
 		inputSchema: {
 			type: 'object',
 			properties: {},
@@ -52,7 +68,7 @@ export const definitions = [
 	{
 		name: 'create_or_update_roadmap',
 		description:
-			'Creates or updates the ROADMAP.md file in .project/ directory. Use this when planning future work, milestones, or phases. If the file exists, intelligently merges new content with existing roadmap.',
+			'Creates or updates ROADMAP.md in .project/ directory for PROJECT PLANNING. Use this for tracking planned work, milestones, phases, and timelines. This is OPERATIONAL planning (what work to do when) - for documenting system architecture or designs, use update_architecture_doc instead.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -78,7 +94,7 @@ export const definitions = [
 	{
 		name: 'create_or_update_todo',
 		description:
-			'Creates or updates the TODO.md file in .project/ directory. Use this when adding tasks, marking items complete, or updating task status. Intelligently organizes tasks into sections (In Progress, Next Up, Blocked, Completed).',
+			'Creates or updates TODO.md in .project/ directory for TASK TRACKING. Use this for managing work items: adding tasks, marking items complete, updating task status. Organizes tasks into sections (In Progress, Next Up, Blocked, Completed).',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -110,7 +126,7 @@ export const definitions = [
 	{
 		name: 'create_or_update_status',
 		description:
-			'Creates or updates the STATUS.md file in .project/ directory. Use this when updating project health, recent changes, metrics, or current phase. Automatically updates the "Last Updated" timestamp.',
+			'Creates or updates STATUS.md in .project/ directory for PROJECT HEALTH tracking. Use this for recording current project phase, health indicators, recent changes, metrics, risks, or blockers. This tracks OPERATIONAL status - for documenting completed features or system behavior, use docs/ tools instead.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -137,7 +153,7 @@ export const definitions = [
 	{
 		name: 'create_or_update_index',
 		description:
-			'Creates or updates the index.md file in .project/ directory. This is the contract file that defines how agents should interpret sources. Use this when setting up project structure or updating source mappings.',
+			'Creates or updates index.md in .project/ directory. This is the CONTRACT file that defines how AI agents should interpret sources and queries. Use this when setting up project structure or updating source mappings for agent behavior.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -158,7 +174,7 @@ export const definitions = [
 	{
 		name: 'create_or_update_decisions',
 		description:
-			'Creates or updates the DECISIONS.md file in .project/ directory. Use this when documenting architecture decisions, trade-offs, or rationale. Helps maintain a decision log for the project.',
+			'Creates or updates DECISIONS.md in .project/ directory for OPERATIONAL DECISIONS. Use this for recording decisions made during development: technical choices, trade-offs, rationale. These are "why we did X" records during active development. For permanent architecture documentation that explains system design, use update_architecture_doc instead.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -184,7 +200,7 @@ export const definitions = [
 	{
 		name: 'add_decision',
 		description:
-			'Adds a single architecture decision record (ADR) to DECISIONS.md. Creates a structured entry with title, context, decision, and consequences sections.',
+			'Adds a single Architecture Decision Record (ADR) to .project/DECISIONS.md. Creates a structured entry with title, context, decision, and consequences. Use this for OPERATIONAL DECISIONS during development. For permanent architecture documentation in docs/, use update_architecture_doc instead.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -221,7 +237,8 @@ export const definitions = [
 	},
 	{
 		name: 'list_decisions',
-		description: 'Lists all architecture decisions from DECISIONS.md with optional filtering by status or tag.',
+		description:
+			'Lists all Architecture Decision Records from .project/DECISIONS.md with optional filtering by status or tag. These are operational decisions made during development.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -240,7 +257,7 @@ export const definitions = [
 	{
 		name: 'update_project_status',
 		description:
-			'Quick status update for the project. Adds a timestamped entry to STATUS.md with the current status, changes, or notes.',
+			'Quick status update for .project/STATUS.md. Adds a timestamped entry with current status, health indicator, recent changes, blockers, or next milestone. Use this for PROJECT HEALTH tracking - for documenting completed features or system behavior, use docs/ tools instead.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -274,7 +291,7 @@ export const definitions = [
 	{
 		name: 'add_roadmap_milestone',
 		description:
-			'Adds a milestone or phase to ROADMAP.md. Creates a structured entry with title, description, target date, and deliverables.',
+			'Adds a milestone or phase to .project/ROADMAP.md. Creates a structured entry with title, description, target date, and deliverables. Use this for PROJECT PLANNING - for documenting completed features, use docs/ tools.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -308,7 +325,7 @@ export const definitions = [
 	{
 		name: 'get_decision',
 		description:
-			'Reads a specific architecture decision by ADR ID. Returns the full decision content including context, decision, and consequences.',
+			'Reads a specific Architecture Decision Record by ADR ID from .project/DECISIONS.md. Returns the full decision content including context, decision, and consequences.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -322,7 +339,8 @@ export const definitions = [
 	},
 	{
 		name: 'get_roadmap',
-		description: 'Reads the current roadmap content from ROADMAP.md. Returns milestones, phases, and planned work.',
+		description:
+			'Reads the current roadmap content from .project/ROADMAP.md. Returns milestones, phases, and planned work for project planning.',
 		inputSchema: {
 			type: 'object',
 			properties: {
